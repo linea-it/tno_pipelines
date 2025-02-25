@@ -1,0 +1,7 @@
+name: pipe_hello_world
+channels:
+  - defaults
+dependencies:
+  - python=3.10
+  - pip:
+      - PyYaml
