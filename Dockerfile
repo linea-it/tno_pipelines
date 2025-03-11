@@ -35,11 +35,11 @@ RUN groupadd -r ton --gid 15010 \
 
 # -------------- Python 3.8 Environment Stage --------------
 FROM base AS py3_build
-COPY ./hello_world/environment.yaml .
+COPY ./predict_occultation/environment.yaml .
 RUN /bin/bash --login -c "conda init bash \
     && source ~/.bashrc \
     && conda env create -f environment.yaml \
-    && conda activate pipe_hello_world \
+    && conda activate pipe_pred_occ \
     && rm -rf environment.yaml"
 
 # -------------- Runtime Stage --------------
@@ -68,7 +68,7 @@ ENV LEAP_SECOND_NAME=naif0012.tls
 #     https://naif.jpl.nasa.gov/pub/naif/generic_kernels/lsk/$LEAP_SECOND_NAME
 
 # Python 3.10 environment
-COPY --chown=:conda --chmod=775 --from=py3_build /opt/conda/envs/pipe_hello_world /opt/conda/envs/pipe_hello_world
+COPY --chown=:conda --chmod=775 --from=py3_build /opt/conda/envs/pipe_pred_occ /opt/conda/envs/pipe_pred_occ
 
 RUN set -x && \
     apt-get update --fix-missing && \
@@ -107,7 +107,10 @@ WORKDIR ${APP_HOME}
 
 
 USER ${USERNAME}
-RUN /bin/bash --login -c "conda init bash"
+RUN /bin/bash --login -c "conda init bash \
+    && source ~/.bashrc \
+    && conda activate base \
+    && pip install pydantic PyYaml"
 ENV PATH=${PATH}:/home/${USERNAME}/.local/bin
 
 # ENTRYPOINT [ "./entrypoint.sh" ]

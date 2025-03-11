@@ -22,7 +22,7 @@ Create config:
 
 ```bash
 pip install pydantic
-cd $PIPELINES_DIR/hello_world
+cd $PIPELINES_DIR/predict_occultation
 python config.py
 ```
 
@@ -30,7 +30,7 @@ To execute, simply:
 
 ```bash
 # execute Hello World
-cd $PIPELINES_DIR/hello_world
+cd $PIPELINES_DIR/predict_occultation
 mkdir process001
 ./run.sh config.yaml process001
 ```

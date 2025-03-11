@@ -1,4 +1,4 @@
-name: pipe_hello_world
+name: pipe_pred_occ
 channels:
   - defaults
 dependencies:

@@ -8,7 +8,7 @@ if [ ! -d "$PIPELINES_DIR" ]; then
 fi
 
 PIPE_BASE="$PIPELINES_DIR/hello_world"
-HASENV=`conda env list | grep pipe_hello_world`
+HASENV=`conda env list | grep pipe_pred_occ`
 
 if [ -z "$HASENV" ]; then
     echo "Create virtual environment..."
@@ -16,7 +16,7 @@ if [ -z "$HASENV" ]; then
     echo "Virtual environment created and packages installed."
 fi
 
-conda activate pipe_hello_world
+conda activate pipe_pred_occ
 
 export PATH=$PATH:"$PIPE_BASE/scripts/"
 

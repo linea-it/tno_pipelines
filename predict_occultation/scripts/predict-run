@@ -8,7 +8,7 @@ from utils import load_yml, setup_logger
 class Runner:
 
     def __init__(self, config, cwd=".") -> None:
-        self.logger = setup_logger("hello", logdir=cwd)
+        self.logger = setup_logger("predict", logdir=cwd)
         self.cwd = cwd
 
         # Loading config
@@ -19,9 +19,11 @@ class Runner:
 
     def run(self):
         """Run Hello World"""
-        self.logger.info("Running Hello World...")
+        self.logger.info("Running Predict Occultation")
         self.logger.info(f"cwd: {self.cwd}")
         self.logger.info(f"message: {self.config.get('message')}")
+
+        
 
     def __exit__(self, exc_type, exc_value, traceback):
 

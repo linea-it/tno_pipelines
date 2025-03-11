@@ -5,7 +5,7 @@ from typing import Any
 import yaml
 
 
-def setup_logger(name="tsm", logdir='.'):
+def setup_logger(name="predict", logdir='.'):
     """
     Configures the logger for recording events and messages.
 

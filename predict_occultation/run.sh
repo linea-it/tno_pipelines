@@ -14,7 +14,7 @@ if [ ! -d "$PIPELINES_DIR" ]; then
     exit 1
 fi
 
-INSTALL_PIPE="$PIPELINES_DIR/hello_world/install.sh"
+INSTALL_PIPE="$PIPELINES_DIR/predict_occultation/install.sh"
 
 if [ ! -f "$INSTALL_PIPE" ]; then
     echo "Error: Installation script not found."
@@ -28,6 +28,6 @@ echo "Installing pipeline..."
 set -xe
 
 # Run the Python code with the given argument
-hello-run $ARGS || { echo "Failed to hello-run"; exit 1; }
+predict-run $ARGS || { echo "Failed to predict-run"; exit 1; }
 
 echo "Done."

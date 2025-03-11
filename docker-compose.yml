@@ -7,8 +7,4 @@ services:
     network_mode: "host"
     volumes:
       - .:/app
-    # environment:
-    #   - FLASK_APP=app.py
-    #   - FLASK_ENV=development
-    #   - FLASK_DEBUG=1
     command: /bin/sh -c "while sleep 1000; do :; done"
