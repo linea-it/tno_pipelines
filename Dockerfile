@@ -10,6 +10,8 @@ RUN set -x && \
     gcc \
     gfortran-7 \
     ca-certificates \
+    build-essential \
+    libpq-dev \
     git \
     ssh \
     wget \

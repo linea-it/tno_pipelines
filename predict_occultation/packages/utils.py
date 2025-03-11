@@ -1,9 +1,9 @@
 import logging
 import pathlib
-from typing import Any
+from typing import Any, Dict
 
 import yaml
-
+import json
 
 def setup_logger(name="predict", logdir='.'):
     """
@@ -39,5 +39,20 @@ def load_yml(filepath: str) -> Any:
 
     with open(filepath, encoding="utf-8") as _file:
         content = yaml.safe_load(_file)
+
+    return content
+
+def load_json(filepath: str) -> Dict:
+    """Load json file
+
+    Args:
+        filepath (str): filepath
+
+    Returns:
+        Any: json file content
+    """
+
+    with open(filepath, encoding="utf-8") as _file:
+        content = json.load(_file)
 
     return content

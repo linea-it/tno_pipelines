@@ -2,9 +2,9 @@
 
 import argparse
 import os
-from utils import load_yml, setup_logger
-
-
+from utils import load_yml, setup_logger, load_json
+from pathlib import Path
+from dao import PredictOccultationJobResultDao
 class Runner:
 
     def __init__(self, config, cwd=".") -> None:
@@ -14,15 +14,24 @@ class Runner:
         # Loading config
         self.config = load_yml(config)
 
+
     def __enter__(self):
         return self
 
     def run(self):
         """Run Hello World"""
+        self.logger.info("-"*50)
         self.logger.info("Running Predict Occultation")
         self.logger.info(f"cwd: {self.cwd}")
         self.logger.info(f"message: {self.config.get('message')}")
 
+        # Read asteroid json with all the data
+        asteroid = load_json(Path(self.cwd).joinpath("asteroid.json"))
+        task_id = asteroid.get("task_id")
+
+        task_dao = PredictOccultationJobResultDao()
+        # Change task status to running
+        print(task_dao)
         
 
     def __exit__(self, exc_type, exc_value, traceback):

@@ -1,4 +1,34 @@
-2025-03-11 16:39:49,388 - INFO - Running Predict Occultation
-2025-03-11 16:39:49,388 - INFO - cwd: process001
-2025-03-11 16:39:49,388 - INFO - message: Hello World
-2025-03-11 16:39:49,388 - INFO - done!
+2025-03-11 19:46:23,936 - INFO - --------------------------------------------------
+2025-03-11 19:46:23,936 - INFO - Running Predict Occultation
+2025-03-11 19:46:23,936 - INFO - cwd: process001
+2025-03-11 19:46:23,936 - INFO - message: Hello World
+2025-03-11 19:46:23,936 - INFO - done!
+2025-03-11 19:47:09,306 - INFO - --------------------------------------------------
+2025-03-11 19:47:09,306 - INFO - Running Predict Occultation
+2025-03-11 19:47:09,306 - INFO - cwd: process001
+2025-03-11 19:47:09,306 - INFO - message: Hello World
+2025-03-11 19:47:09,320 - ERROR - SystemError: initialization of _psycopg raised unreported exception
+2025-03-11 19:47:09,320 - DEBUG - Traceback: <traceback object at 0x7efd85eed680>
+2025-03-11 19:50:51,579 - INFO - --------------------------------------------------
+2025-03-11 19:50:51,579 - INFO - Running Predict Occultation
+2025-03-11 19:50:51,579 - INFO - cwd: process001
+2025-03-11 19:50:51,579 - INFO - message: Hello World
+2025-03-11 19:50:51,592 - ERROR - SystemError: initialization of _psycopg raised unreported exception
+2025-03-11 19:50:51,592 - DEBUG - Traceback: <traceback object at 0x7ff9a8555900>
+2025-03-11 19:52:24,703 - INFO - --------------------------------------------------
+2025-03-11 19:52:24,703 - INFO - Running Predict Occultation
+2025-03-11 19:52:24,703 - INFO - cwd: process001
+2025-03-11 19:52:24,704 - INFO - message: Hello World
+2025-03-11 19:52:24,717 - ERROR - SystemError: initialization of _psycopg raised unreported exception
+2025-03-11 19:52:24,717 - DEBUG - Traceback: <traceback object at 0x7fdb11294c40>
+2025-03-11 20:02:14,607 - INFO - --------------------------------------------------
+2025-03-11 20:02:14,607 - INFO - Running Predict Occultation
+2025-03-11 20:02:14,607 - INFO - cwd: process001
+2025-03-11 20:02:14,607 - INFO - message: Hello World
+2025-03-11 20:02:14,623 - ERROR - SystemError: initialization of _psycopg raised unreported exception
+2025-03-11 20:02:14,623 - DEBUG - Traceback: <traceback object at 0x7fb9338ed040>
+2025-03-11 20:07:55,584 - INFO - --------------------------------------------------
+2025-03-11 20:07:55,585 - INFO - Running Predict Occultation
+2025-03-11 20:07:55,585 - INFO - cwd: process001
+2025-03-11 20:07:55,585 - INFO - message: Hello World
+2025-03-11 20:07:55,647 - INFO - done!
