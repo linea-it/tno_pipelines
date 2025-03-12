@@ -40,13 +40,31 @@
     "mass": null,
     "mass_err_min": null,
     "mass_err_max": null,
-    "star_catalog": {
-        "name": "gaia_dr3",
-        "display_name": "GAIA DR3",
-        "schema": "gaia_dr3",
-        "tablename": "source",
-        "ra_property": "ra",
-        "dec_property": "dec"
+    "predict_params": {
+        "start_date": "2025-02-14",
+        "end_date": "2025-03-14",
+        "maximum_visual_magnitude": 18,
+        "ephemeris_step": 60,
+        "star_catalog": {
+            "name": "gaia_dr3",
+            "display_name": "GAIA DR3",
+            "schema": "gaia_dr3",
+            "tablename": "source",
+            "ra_property": "ra",
+            "dec_property": "dec"
+        },
+        "planetary_ephemeris": {
+            "name": "de440",
+            "display_name": "de440",
+            "url": "https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/de440.bsp",
+            "filename": "de440.bsp"
+        },
+        "leap_seconds": {
+            "name": "naif0012",
+            "display_name": "naif0012",
+            "url": "https://naif.jpl.nasa.gov/pub/naif/generic_kernels/lsk/naif0012.tls",
+            "filename": "naif0012.tls"
+        }
     },
     "bsp_jpl": {
         "source": "JPL",

@@ -5,6 +5,10 @@ import os
 from utils import load_yml, setup_logger, load_json
 from pathlib import Path
 from dao import PredictOccultationJobResultDao
+from praia_occ import run_praia_occ
+from generate_dates import generate_dates_file
+from pathlib import Path
+from generate_ephemeris import generate_ephemeris_file
 class Runner:
 
     def __init__(self, config, cwd=".") -> None:
@@ -29,10 +33,79 @@ class Runner:
         asteroid = load_json(Path(self.cwd).joinpath("asteroid.json"))
         task_id = asteroid.get("task_id")
 
-        task_dao = PredictOccultationJobResultDao()
+        # Instantiate DAO for task management
+        # task_dao = PredictOccultationJobResultDao()
+
         # Change task status to running
-        print(task_dao)
+        # task_dao.update(id=task_id, data={"status": 4})
+
+        # TODO: Parametros da execução 
+        predict_params = asteroid.get("predict_params")
+
+        START_DATE = predict_params.get("start_date")
+        END_DATE = predict_params.get("end_date")
+        EPHEMERIS_STEP = predict_params.get("ephemeris_step")
+        MAXIMUM_VISUAL_MAGNITUDE = predict_params.get("maximum_visual_magnitude")
         
+        LEAP_SECONDS = predict_params["leap_seconds"].get("name")
+        PLANETARY_EPHEMERIS = predict_params["planetary_ephemeris"].get("name")
+
+
+        # TODO: Verificar se os inputs existem no diretório de execução
+        OBJECT_EPHEMERIS_FILEPATH = Path(self.cwd, asteroid["bsp_jpl"].get("filename"))
+        # TODO: Esses paths do de440 e naif0012 vão vir apartir da configuração
+        # por que precisa ser criado um link desses arquivos no diretório do asteroid. 
+        LEAP_SECONDS_FILEPATH = Path(self.cwd, predict_params["leap_seconds"].get("filename"))
+        PLANETARY_EPHEMERIS_FILEPATH = Path(self.cwd, predict_params["planetary_ephemeris"].get("filename"))
+
+        # TODO: Criar link para os arquivos leap_seconds e planetary_ephemeris
+
+        # ---------------------------------------------------------------------
+        # Criação do arquivo de datas.
+        # If the dates.txt file already exists in the specified directory, 
+        # it will use the existing file.
+        dates_filepath = Path(cwd, "dates.txt")
+        if dates_filepath.exists():
+            self.logger.info("Using previously created date file.")
+        else:
+            dates_filepath = generate_dates_file(
+                start_date=START_DATE, 
+                end_date=END_DATE, 
+                ephemeris_step=EPHEMERIS_STEP, 
+                cwd=self.cwd, 
+                logger=self.logger)
+        # TODO: Verificar se o arquivo de datas tem valores/estrutura valida.
+
+        # ---------------------------------------------------------------------
+        # Criação do arquivo de ephemeris
+        ephemeris_filepath = generate_ephemeris_file(
+            dates_filepath=dates_filepath,
+            object_ephemeris=OBJECT_EPHEMERIS_FILEPATH,
+            planetary_ephemeris=PLANETARY_EPHEMERIS_FILEPATH,
+            leap_seconds=LEAP_SECONDS_FILEPATH,
+            cwd=self.cwd, 
+            logger=self.logger
+        )
+        # TODO: Verificar se o arquivo de ephemeris tem valores/estrutura valida.
+
+        # ---------------------------------------------------------------------
+        # Criação do catalogo de estrelas
+
+
+        # # ============== Executa o PRAIA OCC ==============
+        # run_praia_occ(
+        #     name=asteroid.get("name"),
+        #     start_date=predict_params.get("start_date"),
+        #     end_date=predict_params.get("end_date"),
+        #     step=predict_params.get("step"),
+        #     maximum_visual_magnitude=predict_params.get("maximum_visual_magnitude"),
+        #     leap_seconds=predict_params["leap_seconds"].get("name"),
+        #     planetary_ephemeris=predict_params["planetary_ephemeris"].get("name"),
+        #     cwd=self.cwd,
+        #     logger=self.logger
+        # )        
+
+
 
     def __exit__(self, exc_type, exc_value, traceback):
 

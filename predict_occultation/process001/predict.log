@@ -1,34 +1,48 @@
-2025-03-11 19:46:23,936 - INFO - --------------------------------------------------
-2025-03-11 19:46:23,936 - INFO - Running Predict Occultation
-2025-03-11 19:46:23,936 - INFO - cwd: process001
-2025-03-11 19:46:23,936 - INFO - message: Hello World
-2025-03-11 19:46:23,936 - INFO - done!
-2025-03-11 19:47:09,306 - INFO - --------------------------------------------------
-2025-03-11 19:47:09,306 - INFO - Running Predict Occultation
-2025-03-11 19:47:09,306 - INFO - cwd: process001
-2025-03-11 19:47:09,306 - INFO - message: Hello World
-2025-03-11 19:47:09,320 - ERROR - SystemError: initialization of _psycopg raised unreported exception
-2025-03-11 19:47:09,320 - DEBUG - Traceback: <traceback object at 0x7efd85eed680>
-2025-03-11 19:50:51,579 - INFO - --------------------------------------------------
-2025-03-11 19:50:51,579 - INFO - Running Predict Occultation
-2025-03-11 19:50:51,579 - INFO - cwd: process001
-2025-03-11 19:50:51,579 - INFO - message: Hello World
-2025-03-11 19:50:51,592 - ERROR - SystemError: initialization of _psycopg raised unreported exception
-2025-03-11 19:50:51,592 - DEBUG - Traceback: <traceback object at 0x7ff9a8555900>
-2025-03-11 19:52:24,703 - INFO - --------------------------------------------------
-2025-03-11 19:52:24,703 - INFO - Running Predict Occultation
-2025-03-11 19:52:24,703 - INFO - cwd: process001
-2025-03-11 19:52:24,704 - INFO - message: Hello World
-2025-03-11 19:52:24,717 - ERROR - SystemError: initialization of _psycopg raised unreported exception
-2025-03-11 19:52:24,717 - DEBUG - Traceback: <traceback object at 0x7fdb11294c40>
-2025-03-11 20:02:14,607 - INFO - --------------------------------------------------
-2025-03-11 20:02:14,607 - INFO - Running Predict Occultation
-2025-03-11 20:02:14,607 - INFO - cwd: process001
-2025-03-11 20:02:14,607 - INFO - message: Hello World
-2025-03-11 20:02:14,623 - ERROR - SystemError: initialization of _psycopg raised unreported exception
-2025-03-11 20:02:14,623 - DEBUG - Traceback: <traceback object at 0x7fb9338ed040>
-2025-03-11 20:07:55,584 - INFO - --------------------------------------------------
-2025-03-11 20:07:55,585 - INFO - Running Predict Occultation
-2025-03-11 20:07:55,585 - INFO - cwd: process001
-2025-03-11 20:07:55,585 - INFO - message: Hello World
-2025-03-11 20:07:55,647 - INFO - done!
+2025-03-12 22:24:05,508 - INFO - --------------------------------------------------
+2025-03-12 22:24:05,508 - INFO - Running Predict Occultation
+2025-03-12 22:24:05,508 - INFO - cwd: /app/predict_occultation/process001
+2025-03-12 22:24:05,508 - INFO - message: Hello World
+2025-03-12 22:24:05,508 - INFO - Generating dates file
+2025-03-12 22:24:05,508 - INFO - Original Execution CWD: [/app/predict_occultation]
+2025-03-12 22:24:05,508 - INFO - Changing to CWD: [/app/predict_occultation/process001]
+2025-03-12 22:24:05,508 - INFO - Current Execution CWD: [/app/predict_occultation/process001]
+2025-03-12 22:24:05,508 - INFO - Generating dates file: start:[2025-02-14] end: [2025-03-14] step: [60]
+2025-03-12 22:24:06,275 - INFO - Returning to original CWD: [/app/predict_occultation]
+2025-03-12 22:24:06,275 - INFO - Dates file created: [/app/predict_occultation/process001/dates.txt]
+2025-03-12 22:24:06,275 - INFO - Generating ephemeris file
+2025-03-12 22:24:06,275 - DEBUG - Dates filepath: [/app/predict_occultation/process001/dates.txt]
+2025-03-12 22:24:06,275 - DEBUG - Object Ephemeris: [/app/predict_occultation/process001/2008RH167.bsp]
+2025-03-12 22:24:06,275 - DEBUG - Planetary Ephemeris: [/app/predict_occultation/process001/de440.bsp]
+2025-03-12 22:24:06,275 - DEBUG - Leap Seconds: [/app/predict_occultation/process001/naif0012.tls]
+2025-03-12 22:24:06,275 - INFO - Load the planetary ephemeris, the leap second and asteroid bsp
+2025-03-12 22:24:06,281 - INFO - Finding the IDSPK in the header of the bsp file
+2025-03-12 22:24:06,282 - DEBUG - IDSPK: [20632581]
+2025-03-12 22:24:06,282 - INFO - Reading the file with dates
+2025-03-12 22:24:06,285 - DEBUG - Number of dates: [40321]
+2025-03-12 22:24:06,806 - INFO - Compute geocentric positions
+2025-03-12 22:24:07,804 - INFO - Convert cartesian to angular coordinates
+2025-03-12 22:24:07,896 - INFO - Writing the ephemeris ascii file
+2025-03-12 22:24:07,998 - INFO - Ephemeris file generated successfully
+2025-03-12 22:24:07,998 - DEBUG - Ephemeris filepath: [/app/predict_occultation/process001/ephemeris.eph]
+2025-03-12 22:24:08,003 - INFO - done!
+2025-03-12 22:35:55,182 - INFO - --------------------------------------------------
+2025-03-12 22:35:55,182 - INFO - Running Predict Occultation
+2025-03-12 22:35:55,182 - INFO - cwd: /app/predict_occultation/process001
+2025-03-12 22:35:55,182 - INFO - message: Hello World
+2025-03-12 22:35:55,182 - INFO - Using previously created date file.
+2025-03-12 22:35:55,182 - INFO - Generating ephemeris file
+2025-03-12 22:35:55,182 - DEBUG - Dates filepath: [/app/predict_occultation/process001/dates.txt]
+2025-03-12 22:35:55,182 - DEBUG - Object Ephemeris: [/app/predict_occultation/process001/2008RH167.bsp]
+2025-03-12 22:35:55,182 - DEBUG - Planetary Ephemeris: [/app/predict_occultation/process001/de440.bsp]
+2025-03-12 22:35:55,182 - DEBUG - Leap Seconds: [/app/predict_occultation/process001/naif0012.tls]
+2025-03-12 22:35:55,182 - INFO - Load the planetary ephemeris, the leap second and asteroid bsp
+2025-03-12 22:35:55,194 - INFO - Finding the IDSPK in the header of the bsp file
+2025-03-12 22:35:55,194 - DEBUG - IDSPK: [20632581]
+2025-03-12 22:35:55,194 - INFO - Reading the file with dates
+2025-03-12 22:35:55,197 - DEBUG - Number of dates: [40321]
+2025-03-12 22:35:55,722 - INFO - Compute geocentric positions
+2025-03-12 22:35:56,690 - INFO - Convert cartesian to angular coordinates
+2025-03-12 22:35:56,764 - INFO - Writing the ephemeris ascii file
+2025-03-12 22:35:56,845 - INFO - Ephemeris file generated successfully
+2025-03-12 22:35:56,846 - DEBUG - Ephemeris filepath: [/app/predict_occultation/process001/ephemeris.eph]
+2025-03-12 22:35:56,850 - INFO - done!
