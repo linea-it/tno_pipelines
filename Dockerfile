@@ -34,9 +34,23 @@ RUN set -x && \
 RUN groupadd -r ton --gid 15010 \
     && groupadd -r conda --gid 900
 
+# -------------- PRAIA OCC compile Stage --------------
+FROM base AS praia_occ
+ADD praia_occ_src /tmp/praia_occ_src
+RUN mkdir /tmp/praia_occ \
+    && cd /tmp/praia_occ_src \
+    && gfortran-7 geradata.f -o geradata spicelib.a \
+    && mv geradata /tmp/praia_occ \
+    && gfortran-7 elimina.f -o elimina \
+    && mv elimina /tmp/praia_occ \
+    && gfortran-7 PRAIA_occ_star_search_12.f -o PRAIA_occ_star_search_12 \
+    && mv PRAIA_occ_star_search_12 /tmp/praia_occ \
+    && cd ~/ \
+    && rm -r /tmp/praia_occ_src
 
 # -------------- Python 3.8 Environment Stage --------------
 FROM base AS py3_build
+
 COPY ./predict_occultation/environment.yaml .
 RUN /bin/bash --login -c "conda init bash \
     && source ~/.bashrc \
@@ -55,22 +69,34 @@ ENV PYTHONDONTWRITEBYTECODE=1
 # This option has no effect on the stdin stream.
 ENV PYTHONUNBUFFERED=1
 
-ENV BSP_PLANETARY_NAME=de440.bsp
-ENV LEAP_SECOND_NAME=naif0012.tls
+ARG APP_HOME=/app
+ARG USERNAME=app.tno
+ARG USERUID=1000
+ARG USERGID=1000
+ARG BSP_PLANETARY_NAME=de440.bsp
+ARG LEAP_SECOND_NAME=naif0012.tls
 
-# # Download da BSP planetary
-# # OBS. o Download demora bastante!
-# RUN wget --no-verbose --show-progress \
-#     --progress=bar:force:noscroll \
-#     https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/$BSP_PLANETARY_NAME
+# Download da BSP planetary
+# OBS. o Download demora bastante!
+RUN wget --no-verbose --show-progress \
+    --progress=bar:force:noscroll \
+    https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/${BSP_PLANETARY_NAME}
 
-# # Download Leap Second
-# RUN wget --no-verbose --show-progress \
-#     --progress=bar:force:noscroll \
-#     https://naif.jpl.nasa.gov/pub/naif/generic_kernels/lsk/$LEAP_SECOND_NAME
+# Download Leap Second
+RUN wget --no-verbose --show-progress \
+    --progress=bar:force:noscroll \
+    https://naif.jpl.nasa.gov/pub/naif/generic_kernels/lsk/${LEAP_SECOND_NAME}
+
+# RUN chmod -R =2775 ${PIPELINE_ROOT} \
+#     && chmod =2775 ${APP_HOME} \
+#     && mv de440.bsp ${PIPELINE_PATH}/$BSP_PLANETARY_NAME \
+#     && mv naif0012.tls ${PIPELINE_PATH}/$LEAP_SECOND_NAME
 
 # Python 3.10 environment
 COPY --chown=:conda --chmod=775 --from=py3_build /opt/conda/envs/pipe_pred_occ /opt/conda/envs/pipe_pred_occ
+
+# PRAIA OCC binaries
+COPY --from=praia_occ /tmp/praia_occ/* /usr/local/bin
 
 RUN set -x && \
     apt-get update --fix-missing && \
@@ -81,11 +107,6 @@ RUN set -x && \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-ARG APP_HOME=/app
-ARG USERNAME=app.tno
-ARG USERUID=1000
-ARG USERGID=1000
-
 # Create NonRoot user and add to groups
 RUN groupadd --gid ${USERGID} ${USERNAME}  \
     && useradd --uid ${USERUID} --gid ${USERGID} --shell /bin/bash --create-home ${USERNAME} \
@@ -94,16 +115,6 @@ RUN groupadd --gid ${USERGID} ${USERNAME}  \
 ENV CONDA_EXE=/opt/conda/bin
 
 COPY --chown=${USERNAME}:ton --chmod=775 . /app
-# COPY --chown=${USERNAME}:ton --chmod=775 entrypoint.sh ${APP_HOME}
-# COPY --chown=${USERNAME}:ton --chmod=775 check_enviroment.py ${APP_HOME}
-
-# Copia o enviroment utilizado dentro do container para atualizar ou criar o enviroment fora do container.
-# COPY --chown=${USERNAME}:ton --chmod=2775 environment.py3.yml ${APP_HOME}
-
-# RUN chmod -R =2775 ${PIPELINE_ROOT} \
-#     && chmod =2775 ${APP_HOME} \
-#     && mv de440.bsp ${PIPELINE_PATH}/$BSP_PLANETARY_NAME \
-#     && mv naif0012.tls ${PIPELINE_PATH}/$LEAP_SECOND_NAME
 
 WORKDIR ${APP_HOME}
 

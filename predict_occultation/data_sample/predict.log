@@ -1,0 +1,65 @@
+2025-03-11 19:46:23,936 - INFO - --------------------------------------------------
+2025-03-11 19:46:23,936 - INFO - Running Predict Occultation
+2025-03-11 19:46:23,936 - INFO - cwd: process001
+2025-03-11 19:46:23,936 - INFO - message: Hello World
+2025-03-11 19:46:23,936 - INFO - done!
+2025-03-11 19:47:09,306 - INFO - --------------------------------------------------
+2025-03-11 19:47:09,306 - INFO - Running Predict Occultation
+2025-03-11 19:47:09,306 - INFO - cwd: process001
+2025-03-11 19:47:09,306 - INFO - message: Hello World
+2025-03-11 19:47:09,320 - ERROR - SystemError: initialization of _psycopg raised unreported exception
+2025-03-11 19:47:09,320 - DEBUG - Traceback: <traceback object at 0x7efd85eed680>
+2025-03-11 19:50:51,579 - INFO - --------------------------------------------------
+2025-03-11 19:50:51,579 - INFO - Running Predict Occultation
+2025-03-11 19:50:51,579 - INFO - cwd: process001
+2025-03-11 19:50:51,579 - INFO - message: Hello World
+2025-03-11 19:50:51,592 - ERROR - SystemError: initialization of _psycopg raised unreported exception
+2025-03-11 19:50:51,592 - DEBUG - Traceback: <traceback object at 0x7ff9a8555900>
+2025-03-11 19:52:24,703 - INFO - --------------------------------------------------
+2025-03-11 19:52:24,703 - INFO - Running Predict Occultation
+2025-03-11 19:52:24,703 - INFO - cwd: process001
+2025-03-11 19:52:24,704 - INFO - message: Hello World
+2025-03-11 19:52:24,717 - ERROR - SystemError: initialization of _psycopg raised unreported exception
+2025-03-11 19:52:24,717 - DEBUG - Traceback: <traceback object at 0x7fdb11294c40>
+2025-03-11 20:02:14,607 - INFO - --------------------------------------------------
+2025-03-11 20:02:14,607 - INFO - Running Predict Occultation
+2025-03-11 20:02:14,607 - INFO - cwd: process001
+2025-03-11 20:02:14,607 - INFO - message: Hello World
+2025-03-11 20:02:14,623 - ERROR - SystemError: initialization of _psycopg raised unreported exception
+2025-03-11 20:02:14,623 - DEBUG - Traceback: <traceback object at 0x7fb9338ed040>
+2025-03-11 20:07:55,584 - INFO - --------------------------------------------------
+2025-03-11 20:07:55,585 - INFO - Running Predict Occultation
+2025-03-11 20:07:55,585 - INFO - cwd: process001
+2025-03-11 20:07:55,585 - INFO - message: Hello World
+2025-03-11 20:07:55,647 - INFO - done!
+2025-03-12 15:52:51,080 - INFO - --------------------------------------------------
+2025-03-12 15:52:51,080 - INFO - Running Predict Occultation
+2025-03-12 15:52:51,081 - INFO - cwd: process001
+2025-03-12 15:52:51,081 - INFO - message: Hello World
+2025-03-12 15:52:51,158 - ERROR - AttributeError: 'NoneType' object has no attribute 'get'
+2025-03-12 15:52:51,158 - DEBUG - Traceback: <traceback object at 0x7f0dc4a5bb80>
+2025-03-12 15:53:39,502 - INFO - --------------------------------------------------
+2025-03-12 15:53:39,502 - INFO - Running Predict Occultation
+2025-03-12 15:53:39,512 - INFO - cwd: process001
+2025-03-12 15:53:39,512 - INFO - message: Hello World
+2025-03-12 15:53:39,588 - ERROR - KeyError: 'planetary_ephemeris'
+2025-03-12 15:53:39,588 - DEBUG - Traceback: <traceback object at 0x7f48121fa040>
+2025-03-12 15:53:53,686 - INFO - --------------------------------------------------
+2025-03-12 15:53:53,686 - INFO - Running Predict Occultation
+2025-03-12 15:53:53,686 - INFO - cwd: process001
+2025-03-12 15:53:53,686 - INFO - message: Hello World
+2025-03-12 15:53:53,764 - ERROR - TypeError: run_praia_occ() got an unexpected keyword argument 'end_date'
+2025-03-12 15:53:53,764 - DEBUG - Traceback: <traceback object at 0x7fb4a3393880>
+2025-03-12 15:55:08,713 - INFO - --------------------------------------------------
+2025-03-12 15:55:08,713 - INFO - Running Predict Occultation
+2025-03-12 15:55:08,713 - INFO - cwd: process001
+2025-03-12 15:55:08,713 - INFO - message: Hello World
+2025-03-12 15:55:08,780 - INFO - Preparing Praia Occultation
+2025-03-12 15:55:08,780 - DEBUG - Name: 2008 RH167
+2025-03-12 15:55:08,781 - DEBUG - Start Date: 2025-02-14
+2025-03-12 15:55:08,781 - DEBUG - End Date: 2025-03-14
+2025-03-12 15:55:08,781 - DEBUG - Step: 60
+2025-03-12 15:55:08,781 - DEBUG - Leap Seconds: naif0012
+2025-03-12 15:55:08,781 - DEBUG - Planetary Ephemeris: de440
+2025-03-12 15:55:08,781 - DEBUG - Maximum Visual Magnitude: 18
+2025-03-12 15:55:08,781 - INFO - done!
