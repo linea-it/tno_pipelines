@@ -45,6 +45,7 @@
         "end_date": "2025-03-14",
         "maximum_visual_magnitude": 18,
         "ephemeris_step": 60,
+        "proper_motion_compensation": 150,
         "star_catalog": {
             "name": "gaia_dr3",
             "display_name": "GAIA DR3",

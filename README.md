@@ -32,5 +32,6 @@ To execute, simply:
 # execute Hello World
 cd $PIPELINES_DIR/predict_occultation
 mkdir process001
-./run.sh config.yaml process001
+# ./run.sh config.yaml process001
+./run.sh config.yaml /app/predict_occultation/process001
 ```

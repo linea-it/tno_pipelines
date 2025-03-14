@@ -5,10 +5,15 @@ import os
 from utils import load_yml, setup_logger, load_json
 from pathlib import Path
 from dao import PredictOccultationJobResultDao
-from praia_occ import run_praia_occ
+from praia_occ import search_candidates
 from generate_dates import generate_dates_file
 from pathlib import Path
 from generate_ephemeris import generate_ephemeris_file
+from library import asteroid_diameter, read_ra_dec_from_ephemerides, object_diameter_plus_error
+from star_catalog import generate_star_catalog
+from path_coeff import execute_path_coeff, prepare_occultation_table_dataframe
+
+import pandas as pd
 class Runner:
 
     def __init__(self, config, cwd=".") -> None:
@@ -24,8 +29,9 @@ class Runner:
 
     def run(self):
         """Run Hello World"""
-        self.logger.info("-"*50)
+        self.logger.info("="*50)
         self.logger.info("Running Predict Occultation")
+        self.logger.info("="*50)
         self.logger.info(f"cwd: {self.cwd}")
         self.logger.info(f"message: {self.config.get('message')}")
 
@@ -42,10 +48,13 @@ class Runner:
         # TODO: Parametros da execução 
         predict_params = asteroid.get("predict_params")
 
+        star_catalog_params = predict_params.get("star_catalog")
+
         START_DATE = predict_params.get("start_date")
         END_DATE = predict_params.get("end_date")
         EPHEMERIS_STEP = predict_params.get("ephemeris_step")
         MAXIMUM_VISUAL_MAGNITUDE = predict_params.get("maximum_visual_magnitude")
+        PROPER_MOTION_COMPENSATION = predict_params.get("proper_motion_compensation")
         
         LEAP_SECONDS = predict_params["leap_seconds"].get("name")
         PLANETARY_EPHEMERIS = predict_params["planetary_ephemeris"].get("name")
@@ -53,7 +62,8 @@ class Runner:
 
         # TODO: Verificar se os inputs existem no diretório de execução
         OBJECT_EPHEMERIS_FILEPATH = Path(self.cwd, asteroid["bsp_jpl"].get("filename"))
-        # TODO: Esses paths do de440 e naif0012 vão vir apartir da configuração
+        APMAG_UNCERTAINTY_FILEPATH = Path(self.cwd, asteroid["bsp_jpl"].get("mag_and_uncert_file"))
+        # TODO: Esses paths do de440 e naif0012 vão vir a partir da configuração
         # por que precisa ser criado um link desses arquivos no diretório do asteroid. 
         LEAP_SECONDS_FILEPATH = Path(self.cwd, predict_params["leap_seconds"].get("filename"))
         PLANETARY_EPHEMERIS_FILEPATH = Path(self.cwd, predict_params["planetary_ephemeris"].get("filename"))
@@ -91,20 +101,97 @@ class Runner:
         # ---------------------------------------------------------------------
         # Criação do catalogo de estrelas
 
+        # TODO: otimizar a query no gaia com base no tamanho aparente do objeto no ceu (rodrigo)
+        # BUSCA USANDO QC3 POLIGONO calculando tamanho aparante (objeto+terra+objeto)
+        self.logger.info("Calculate the diameter of the asteroid.")
+        
+        ast_diameter = asteroid_diameter(
+            diameter=asteroid.get("diameter", None), 
+            density_err_max=asteroid.get("density_err_max", None))
+        
+        self.logger.debug(f"Asteroid diameter: {ast_diameter}")
 
-        # # ============== Executa o PRAIA OCC ==============
-        # run_praia_occ(
-        #     name=asteroid.get("name"),
-        #     start_date=predict_params.get("start_date"),
-        #     end_date=predict_params.get("end_date"),
-        #     step=predict_params.get("step"),
-        #     maximum_visual_magnitude=predict_params.get("maximum_visual_magnitude"),
-        #     leap_seconds=predict_params["leap_seconds"].get("name"),
-        #     planetary_ephemeris=predict_params["planetary_ephemeris"].get("name"),
-        #     cwd=self.cwd,
-        #     logger=self.logger
-        # )        
+        self.logger.info(f"Reading ephemeris file and calculating positions")
+        ra, dec, angular_diameter = read_ra_dec_from_ephemerides(
+            input=ephemeris_filepath,
+            object_diameter = ast_diameter,
+            h = asteroid.get("h", None),
+            proper_motion_compensation = PROPER_MOTION_COMPENSATION,
+        )
+        self.logger.debug(f"Positions: [{len(ra)}]")
 
+        self.logger.info(f"Generating star catalog.")
+        praia_star_catalog_filepath, star_catalog_csv = generate_star_catalog(
+            ra = ra,
+            dec = dec,
+            angular_diameter = angular_diameter,
+            maximum_visual_magnitude = MAXIMUM_VISUAL_MAGNITUDE,
+            catalog_name=star_catalog_params.get("name"),
+            catalog_display_name=star_catalog_params.get("display_name"),
+            catalog_schema=star_catalog_params.get("schema"),
+            catalog_tablename=star_catalog_params.get("tablename"),
+            catalog_ra_property=star_catalog_params.get("ra_property"),
+            catalog_dec_property=star_catalog_params.get("dec_property"),
+            cwd=self.cwd,
+            logger=self.logger
+        )
+
+        # ---------------------------------------------------------------------
+        # Search Candidates - Execução do PRAIA OCC
+
+        # Quando o diametro do objeto exitir no json, ele é passado para a função search_candidates
+        # que cria o arquivo praia_occ_star_search_12.dat. Sua função é reduzir o numero de calculo necessário
+        # especialmente para objetos de diametros pequenos.
+        self.logger.info("Calculate object diamenter + error")
+        object_diameter = object_diameter_plus_error(
+            asteroid.get("diameter", None), 
+            asteroid.get("diameter_err_max", None)
+        )
+        self.logger.debug(f"Object diameter: {object_diameter}")
+
+        self.logger.info("Search Candidates using PRAIA OCC")
+        occultation_filepath = search_candidates(
+            star_catalog_filepath=praia_star_catalog_filepath,
+            ephemeris_filepath=ephemeris_filepath,
+            object_diameter=object_diameter,
+            cwd=self.cwd,
+            logger=self.logger
+        )
+
+        # IMPORTANT! If the occultation file is empty, skip next steps.
+        if pd.read_csv(occultation_filepath).empty:
+            return
+
+        # ---------------------------------------------------------------------
+        # Prepara a tabela de occultações 
+
+        # Cria um novo dataframe a partir do arquivo de occultações. 
+        # Adiciona todas as colunas que existem na tabela de predições do portal.
+        # Como informações do asteroid, proveniencia e path_coeff.
+        # IMPORTANT! Sobreescreve o arquivo csv de ocultações com as novas colunas.
+        prepare_occultation_table_dataframe(
+            occultation_table=occultation_filepath, 
+            object_data=asteroid
+        )
+
+        # ---------------------------------------------------------------------
+        # Calculating Path Coeff
+        # IMPORTANT! Sobreescreve o arquivo csv de ocultações com as novas colunas.
+        self.logger.info("Calculating Path Coefficients")
+        execute_path_coeff(
+            object_data=asteroid,
+            occultation_table=occultation_filepath,
+            star_catalog=star_catalog_csv,
+            object_ephemeris=OBJECT_EPHEMERIS_FILEPATH,
+            mag_and_uncert=APMAG_UNCERTAINTY_FILEPATH,
+            planetary_ephemeris=PLANETARY_EPHEMERIS_FILEPATH,
+            leap_seconds=LEAP_SECONDS_FILEPATH,            
+            cwd=self.cwd,
+            logger=self.logger
+        )
+
+        # ---------------------------------------------------------------------
+        # Register Occultations
 
 
     def __exit__(self, exc_type, exc_value, traceback):

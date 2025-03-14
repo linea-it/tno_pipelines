@@ -8,10 +8,11 @@ dependencies:
   - pip:
       - PyYaml==6.0.2
       - pydantic==2.10.6
-      - sqlalchemy==1.4.32
+      - sqlalchemy==2.0.39
       - psycopg2==2.9.10
       - psycopg2-binary==2.9.10
       - numpy==2.2.3
-      - pandas==1.4.1
+      - pandas==2.2.3
       - spiceypy==5.0.1
       - astropy==7.0.1
+      - scipy==1.15.2
