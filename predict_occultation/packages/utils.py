@@ -56,3 +56,8 @@ def load_json(filepath: str) -> Dict:
         content = json.load(_file)
 
     return content
+
+def count_lines(filepath):
+    with open(filepath, "r") as fp:
+        num_lines = sum(1 for line in fp if line.rstrip())
+        return num_lines

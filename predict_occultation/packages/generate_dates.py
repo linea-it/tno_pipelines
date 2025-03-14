@@ -47,7 +47,6 @@ def generate_dates_file(start_date:str, end_date:str, ephemeris_step:int, cwd:st
             )
             p.communicate(str.encode(strParameters))
 
-        # os.chmod(filepath, 0o664)
     except Exception as e:
         msg="Error generating dates file: %s", e
         logger.error(msg)
