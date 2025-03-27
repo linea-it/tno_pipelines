@@ -7,7 +7,7 @@ if [ ! -d "$PIPELINES_DIR" ]; then
     exit 1
 fi
 
-PIPE_BASE="$PIPELINES_DIR/hello_world"
+PIPE_BASE="$PIPELINES_DIR/predict_occultation"
 HASENV=`conda env list | grep pipe_pred_occ`
 
 if [ -z "$HASENV" ]; then

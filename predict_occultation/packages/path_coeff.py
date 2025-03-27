@@ -333,7 +333,6 @@ def execute_path_coeff(
     mag_and_uncert: pathlib.Path,
     planetary_ephemeris: pathlib.Path,
     leap_seconds: pathlib.Path,    
-    cwd: str,
     logger: logging.Logger,
 ):
 
