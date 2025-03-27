@@ -76,19 +76,19 @@ ARG USERGID=1000
 ARG BSP_PLANETARY_NAME=de440.bsp
 ARG LEAP_SECOND_NAME=naif0012.tls
 
+WORKDIR ${APP_HOME}
 # Download da BSP planetary
 # OBS. o Download demora bastante!
 RUN wget --no-verbose --show-progress \
     --progress=bar:force:noscroll \
-    https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/${BSP_PLANETARY_NAME}
+    https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/planets/${BSP_PLANETARY_NAME} \
+    -O ${APP_HOME}/${BSP_PLANETARY_NAME}
 
 # Download Leap Second
 RUN wget --no-verbose --show-progress \
     --progress=bar:force:noscroll \
-    https://naif.jpl.nasa.gov/pub/naif/generic_kernels/lsk/${LEAP_SECOND_NAME}
-
-RUN mv ${BSP_PLANETARY_NAME} ${APP_HOME}/$BSP_PLANETARY_NAME \
-    && mv ${LEAP_SECOND_NAME} ${APP_HOME}/$LEAP_SECOND_NAME
+    https://naif.jpl.nasa.gov/pub/naif/generic_kernels/lsk/${LEAP_SECOND_NAME} \
+    -O ${APP_HOME}/${LEAP_SECOND_NAME}
 
 # Python 3.10 environment
 COPY --chown=:conda --chmod=775 --from=py3_build /opt/conda/envs/pipe_pred_occ /opt/conda/envs/pipe_pred_occ
@@ -114,7 +114,7 @@ ENV CONDA_EXE=/opt/conda/bin
 
 COPY --chown=${USERNAME}:ton --chmod=775 . /app
 
-WORKDIR ${APP_HOME}
+# WORKDIR ${APP_HOME}
 
 
 USER ${USERNAME}
