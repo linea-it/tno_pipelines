@@ -56,20 +56,25 @@ class Runner:
         MAXIMUM_VISUAL_MAGNITUDE = predict_params.get("maximum_visual_magnitude")
         PROPER_MOTION_COMPENSATION = predict_params.get("proper_motion_compensation")
         
-        LEAP_SECONDS = predict_params["leap_seconds"].get("name")
-        PLANETARY_EPHEMERIS = predict_params["planetary_ephemeris"].get("name")
-
-
         # TODO: Verificar se os inputs existem no diretório de execução
         OBJECT_EPHEMERIS_FILEPATH = Path(self.cwd, asteroid["bsp_jpl"].get("filename"))
         APMAG_UNCERTAINTY_FILEPATH = Path(self.cwd, asteroid["bsp_jpl"].get("mag_and_uncert_file"))
-        # TODO: Esses paths do de440 e naif0012 vão vir a partir da configuração
-        # por que precisa ser criado um link desses arquivos no diretório do asteroid. 
-        LEAP_SECONDS_FILEPATH = Path(self.cwd, predict_params["leap_seconds"].get("filename"))
-        PLANETARY_EPHEMERIS_FILEPATH = Path(self.cwd, predict_params["planetary_ephemeris"].get("filename"))
 
         # TODO: Criar link para os arquivos leap_seconds e planetary_ephemeris
+        # TODO: Esses paths do de440 e naif0012 vão vir a partir da configuração
+        # por que precisa ser criado um link desses arquivos no diretório do asteroid. 
+        # LEAP_SECONDS = predict_params["leap_seconds"].get("name")
+        # PLANETARY_EPHEMERIS = predict_params["planetary_ephemeris"].get("name")
+        ORIGIN_PLANETARY_EPHEMERIS_FILEPATH = Path(os.getenv("PLANETARY_EPHEMERIS_FILEPATH"))
+        PLANETARY_EPHEMERIS_FILEPATH = Path(self.cwd, ORIGIN_PLANETARY_EPHEMERIS_FILEPATH.name)
+        self.logger.info(f"Creating link to planetary ephemeris file. {ORIGIN_PLANETARY_EPHEMERIS_FILEPATH} -> {PLANETARY_EPHEMERIS_FILEPATH}")
+        os.symlink(ORIGIN_PLANETARY_EPHEMERIS_FILEPATH, PLANETARY_EPHEMERIS_FILEPATH)
 
+        ORIGIN_LEAP_SECONDS_FILEPATH = Path(os.getenv("LEAP_SECONDS_FILEPATH"))
+        LEAP_SECONDS_FILEPATH = Path(self.cwd, ORIGIN_LEAP_SECONDS_FILEPATH.name)
+        self.logger.info(f"Creating link to leap seconds file. {ORIGIN_LEAP_SECONDS_FILEPATH} -> {LEAP_SECONDS_FILEPATH}")
+        os.symlink(ORIGIN_LEAP_SECONDS_FILEPATH, LEAP_SECONDS_FILEPATH)
+        
         # ---------------------------------------------------------------------
         # Criação do arquivo de datas.
         # If the dates.txt file already exists in the specified directory, 

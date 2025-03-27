@@ -87,10 +87,8 @@ RUN wget --no-verbose --show-progress \
     --progress=bar:force:noscroll \
     https://naif.jpl.nasa.gov/pub/naif/generic_kernels/lsk/${LEAP_SECOND_NAME}
 
-# RUN chmod -R =2775 ${PIPELINE_ROOT} \
-#     && chmod =2775 ${APP_HOME} \
-#     && mv de440.bsp ${PIPELINE_PATH}/$BSP_PLANETARY_NAME \
-#     && mv naif0012.tls ${PIPELINE_PATH}/$LEAP_SECOND_NAME
+RUN mv ${BSP_PLANETARY_NAME} ${APP_HOME}/$BSP_PLANETARY_NAME \
+    && mv ${LEAP_SECOND_NAME} ${APP_HOME}/$LEAP_SECOND_NAME
 
 # Python 3.10 environment
 COPY --chown=:conda --chmod=775 --from=py3_build /opt/conda/envs/pipe_pred_occ /opt/conda/envs/pipe_pred_occ
