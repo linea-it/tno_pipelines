@@ -16,12 +16,13 @@ from path_coeff import execute_path_coeff, prepare_occultation_table_dataframe
 import pandas as pd
 class Runner:
 
-    def __init__(self, config, cwd=".") -> None:
-        self.logger = setup_logger("predict", logdir=cwd)
-        self.cwd = cwd
-
+    def __init__(self, config) -> None:
         # Loading config
         self.config = load_yml(config)
+
+        self.cwd = self.config.get('asteroid_path')
+
+        self.logger = setup_logger("predict", logdir=self.cwd)
 
 
     def __enter__(self):
@@ -86,7 +87,7 @@ class Runner:
         # Criação do arquivo de datas.
         # If the dates.txt file already exists in the specified directory, 
         # it will use the existing file.
-        dates_filepath = Path(cwd, "dates.txt")
+        dates_filepath = Path(self.cwd, "dates.txt")
         if dates_filepath.exists():
             self.logger.info("Using previously created date file.")
         else:
@@ -221,14 +222,14 @@ if __name__ == "__main__":
     # Create the parser and add arguments
     parser = argparse.ArgumentParser()
     parser.add_argument(dest="config_path", help="yaml config path")
-    parser.add_argument(
-        dest="cwd", nargs="?", help="processing dir", default=os.getcwd()
-    )
+    # # Orchestration proccess dir
+    # parser.add_argument(
+    #     dest="cwd", nargs="?", help="processing dir", default=os.getcwd()
+    # )
 
     args = parser.parse_args()
     config_path = args.config_path
-    cwd = args.cwd
 
     # Run pipeline
-    with Runner(config_path, cwd) as hwrun:
+    with Runner(config_path) as hwrun:
         hwrun.run()
