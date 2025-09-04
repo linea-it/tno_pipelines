@@ -67,13 +67,20 @@ class Runner:
         # PLANETARY_EPHEMERIS = predict_params["planetary_ephemeris"].get("name")
         ORIGIN_PLANETARY_EPHEMERIS_FILEPATH = Path(os.getenv("PLANETARY_EPHEMERIS_FILEPATH"))
         PLANETARY_EPHEMERIS_FILEPATH = Path(self.cwd, ORIGIN_PLANETARY_EPHEMERIS_FILEPATH.name)
-        self.logger.info(f"Creating link to planetary ephemeris file. {ORIGIN_PLANETARY_EPHEMERIS_FILEPATH} -> {PLANETARY_EPHEMERIS_FILEPATH}")
-        os.symlink(ORIGIN_PLANETARY_EPHEMERIS_FILEPATH, PLANETARY_EPHEMERIS_FILEPATH)
+
+        if not PLANETARY_EPHEMERIS_FILEPATH.exists():
+            self.logger.info(f"Creating link to planetary ephemeris file. {ORIGIN_PLANETARY_EPHEMERIS_FILEPATH} -> {PLANETARY_EPHEMERIS_FILEPATH}")
+            os.symlink(ORIGIN_PLANETARY_EPHEMERIS_FILEPATH, PLANETARY_EPHEMERIS_FILEPATH)
+        else:
+            self.logger.warning("Using previously created planetary ephemeris file.")
 
         ORIGIN_LEAP_SECONDS_FILEPATH = Path(os.getenv("LEAP_SECONDS_FILEPATH"))
         LEAP_SECONDS_FILEPATH = Path(self.cwd, ORIGIN_LEAP_SECONDS_FILEPATH.name)
-        self.logger.info(f"Creating link to leap seconds file. {ORIGIN_LEAP_SECONDS_FILEPATH} -> {LEAP_SECONDS_FILEPATH}")
-        os.symlink(ORIGIN_LEAP_SECONDS_FILEPATH, LEAP_SECONDS_FILEPATH)
+        if not LEAP_SECONDS_FILEPATH.exists():
+            self.logger.info(f"Creating link to leap seconds file. {ORIGIN_LEAP_SECONDS_FILEPATH} -> {LEAP_SECONDS_FILEPATH}")
+            os.symlink(ORIGIN_LEAP_SECONDS_FILEPATH, LEAP_SECONDS_FILEPATH)
+        else:
+            self.logger.warning("Using previously created leap seconds file.")
         
         # ---------------------------------------------------------------------
         # Criação do arquivo de datas.
@@ -203,10 +210,11 @@ class Runner:
     def __exit__(self, exc_type, exc_value, traceback):
 
         if exc_type:
-            self.logger.error("%s: %s", exc_type.__name__, exc_value)
-            self.logger.debug("Traceback: %s", traceback)
-        else:
-            self.logger.info("done!")
+            # self.logger.error("%s: %s", exc_type.__name__, exc_value)
+            # self.logger.debug(traceback.print_exc())
+            self.logger.error("%s: %s", exc_type.__name__, exc_value, exc_info=(exc_type, exc_value, traceback))            
+
+        self.logger.info("done!")
             
 
 if __name__ == "__main__":

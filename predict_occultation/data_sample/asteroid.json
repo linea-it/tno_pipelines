@@ -44,7 +44,7 @@
         "start_date": "2025-02-14",
         "end_date": "2025-03-14",
         "maximum_visual_magnitude": 18,
-        "step": 60,
+        "ephemeris_step": 60,
         "star_catalog": {
             "name": "gaia_dr3",
             "display_name": "GAIA DR3",
