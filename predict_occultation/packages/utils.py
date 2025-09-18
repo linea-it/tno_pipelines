@@ -42,15 +42,17 @@ def load_yml(filepath: str) -> Any:
 
     return content
 
-def load_json(filepath: str) -> Dict:
+def load_json(filepath: pathlib.Path) -> Dict:
     """Load json file
 
     Args:
-        filepath (str): filepath
+        filepath (pathlib.Path): filepath
 
     Returns:
         Any: json file content
     """
+    if (not filepath.exists()):
+        raise FileNotFoundError(f"File {filepath} does not exist.")
 
     with open(filepath, encoding="utf-8") as _file:
         content = json.load(_file)

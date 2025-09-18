@@ -7,4 +7,5 @@ services:
     network_mode: "host"
     volumes:
       - .:/app
+      - ./data:/data
     command: /bin/sh -c "while sleep 1000; do :; done"

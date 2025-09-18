@@ -152,7 +152,7 @@ def prepare_occultation_table_dataframe(
     df["job_id"] = object_data["job_id"]
     df["catalog"] = object_data["predict_params"]["star_catalog"]["display_name"]
     df["predict_step"] = object_data["predict_params"]["ephemeris_step"]
-    df["bsp_source"] = object_data["bsp_jpl"]["source"]
+    df["bsp_source"] = object_data["predict_params"]["asteroid_ephemeris"]["source"]
     df["bsp_planetary"] = object_data["predict_params"]["planetary_ephemeris"]["display_name"]
     df["leap_seconds"] = object_data["predict_params"]["leap_seconds"]["display_name"] 
     df["nima"] = False # NIMA nao esta sendo utilizado

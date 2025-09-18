@@ -45,6 +45,20 @@
         "end_date": "2025-03-14",
         "maximum_visual_magnitude": 18,
         "ephemeris_step": 60,
+        "asteroid_ephemeris": {
+            "source": "JPL",
+            "spkid": "20632581",
+            "filename": "2008RH167.bsp",
+            "size": 210944,
+            "start_period": "2023-01-01",
+            "end_period": "2030-12-31",
+            "dw_start": "2025-02-14T16:03:20.696534+00:00",
+            "dw_finish": "2025-02-14T16:03:24.482444+00:00",
+            "dw_time": 3.78591,
+            "mag_and_uncert_file": "apmag_and_uncertainties.json",
+            "tp_start": "2025-02-17T22:18:20.310617+00:00",
+            "tp_finish": "2025-02-17T22:18:20.311226+00:00"
+        },
         "star_catalog": {
             "name": "gaia_dr3",
             "display_name": "GAIA DR3",
@@ -65,20 +79,6 @@
             "url": "https://naif.jpl.nasa.gov/pub/naif/generic_kernels/lsk/naif0012.tls",
             "filename": "naif0012.tls"
         }
-    },
-    "bsp_jpl": {
-        "source": "JPL",
-        "spkid": "20632581",
-        "filename": "2008RH167.bsp",
-        "size": 210944,
-        "start_period": "2023-01-01",
-        "end_period": "2030-12-31",
-        "dw_start": "2025-02-14T16:03:20.696534+00:00",
-        "dw_finish": "2025-02-14T16:03:24.482444+00:00",
-        "dw_time": 3.78591,
-        "mag_and_uncert_file": "apmag_and_uncertainties.json",
-        "tp_start": "2025-02-17T22:18:20.310617+00:00",
-        "tp_finish": "2025-02-17T22:18:20.311226+00:00"
     },
     "predict_occultation": {
         "filename": "occultation_table.csv",
