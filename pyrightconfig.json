@@ -1,0 +1,3 @@
+{
+    "extraPaths": ["./predict_occultation/packages"]
+}

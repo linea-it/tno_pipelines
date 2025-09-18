@@ -4,6 +4,7 @@ from typing import Any, Dict
 
 import yaml
 import json
+import os
 
 def setup_logger(name="predict", logdir='.'):
     """
@@ -63,3 +64,81 @@ def count_lines(filepath):
     with open(filepath, "r") as fp:
         num_lines = sum(1 for line in fp if line.rstrip())
         return num_lines
+    
+
+def get_asteroid_inputs_dir(asteroid_alias: str) -> pathlib.Path:
+    """
+    Returns the input directory path for a given asteroid alias.
+
+    This function retrieves the base input directory for asteroids from the
+    'ASTEROID_INPUTS_DIR' environment variable and appends the provided
+    asteroid alias to form the full path.
+
+    Args:
+        asteroid_alias (str): The alias or identifier of the asteroid.
+
+    Returns:
+        pathlib.Path: The full path to the asteroid's input directory.
+
+    Raises:
+        EnvironmentError: If the 'ASTEROID_INPUTS_DIR' environment variable is not set.
+    """
+
+    # Diretório de inputs externos dos asteroids
+    asteroids_inputs_dir = os.getenv("ASTEROID_INPUTS_DIR")
+    if asteroids_inputs_dir is None:
+        raise EnvironmentError("Environment variable 'ASTEROID_INPUTS_DIR' is not set.")
+
+    return pathlib.Path(asteroids_inputs_dir, asteroid_alias)
+
+
+def check_planetary_ephemeris_file(filename: str) -> pathlib.Path:
+    """
+    Checks the existence and validity of the planetary ephemeris file specified by the
+    Args:
+        filename (str): The expected name of the planetary ephemeris file.
+    Returns:
+        pathlib.Path: The path to the planetary ephemeris file if it exists and matches the expected filename.
+    Raises:
+        FileNotFoundError: If the file specified by the environment variable does not exist.
+        ValueError: If the file name does not match the expected filename.
+    """
+
+    original_bsp_filepath = os.getenv("PLANETARY_EPHEMERIS_FILEPATH")
+    if original_bsp_filepath is None:
+        raise EnvironmentError("Environment variable 'PLANETARY_EPHEMERIS_FILEPATH' is not set.")
+
+    original_bsp_filepath = pathlib.Path(original_bsp_filepath)
+    if not original_bsp_filepath.exists():
+        raise FileNotFoundError(f"Planetary ephemeris file '{original_bsp_filepath.name}' not found in '{original_bsp_filepath.parent}'.")
+    
+    if original_bsp_filepath.name != filename:
+        raise ValueError(f"Planetary ephemeris file name '{original_bsp_filepath.name}' does not match the expected name '{filename}'.")
+    
+    return original_bsp_filepath
+
+def check_leap_seconds_file(filename: str) -> pathlib.Path:
+
+    """
+    Checks the existence and validity of the leap seconds file specified by the
+    Args:
+        filename (str): The expected name of the leap seconds file.
+    Returns:
+        pathlib.Path: The path to the leap seconds file if it exists and matches the expected filename.
+    Raises:
+        FileNotFoundError: If the file specified by the environment variable does not exist.
+        ValueError: If the file name does not match the expected filename.
+    """
+
+    original_leap_seconds_filepath = os.getenv("LEAP_SECONDS_FILEPATH")
+    if original_leap_seconds_filepath is None:
+        raise EnvironmentError("Environment variable 'LEAP_SECONDS_FILEPATH' is not set.")
+
+    original_leap_seconds_filepath = pathlib.Path(original_leap_seconds_filepath)
+    if not original_leap_seconds_filepath.exists():
+        raise FileNotFoundError(f"Leap seconds file '{original_leap_seconds_filepath.name}' not found in '{original_leap_seconds_filepath.parent}'.")
+    
+    if original_leap_seconds_filepath.name != filename:
+        raise ValueError(f"Leap seconds file name '{original_leap_seconds_filepath.name}' does not match the expected name '{filename}'.")
+    
+    return original_leap_seconds_filepath
