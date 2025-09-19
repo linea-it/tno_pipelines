@@ -636,4 +636,7 @@ def execute_path_coeff(
     logger.info("Writing the occultation table with path coefficients.")
 
     df.to_csv(occultation_table, index=False, sep=";")
+
+    occ_count = df.shape[0]
     del df
+    return occ_count

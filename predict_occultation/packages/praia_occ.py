@@ -226,7 +226,7 @@ def ascii_to_csv(ascii_filepath: pathlib.Path, csv_filepath: pathlib.Path):
 def search_candidates(
     star_catalog_filepath: pathlib.Path,
     ephemeris_filepath: pathlib.Path,
-    object_diameter: float,
+    object_diameter: Optional[float],
     cwd: str,
     logger: logging.Logger,
 ):

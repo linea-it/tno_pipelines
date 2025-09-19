@@ -57,7 +57,7 @@ class Runner:
         START_DATE = predict_params.get("start_date") # type: ignore
         END_DATE = predict_params.get("end_date") # type: ignore
         EPHEMERIS_STEP = predict_params.get("ephemeris_step") # type: ignore
-        MAXIMUM_VISUAL_MAGNITUDE = predict_params.get("maximum_visual_magnitude") # type: ignore
+        MAXIMUM_VISUAL_MAGNITUDE = predict_params.get("maximum_visual_magnitude", 18) # type: ignore
         PROPER_MOTION_COMPENSATION = predict_params.get("proper_motion_compensation") # type: ignore
 
         planetary_ephemeris_info = predict_params.get("planetary_ephemeris") # type: ignore
@@ -154,7 +154,8 @@ class Runner:
 
         # ---------------------------------------------------------------------
         #region Criação do arquivo de ephemeris
-        EPHEMERIS_FILEPATH = generate_ephemeris_file(
+        
+        ephemeris_filepath = generate_ephemeris_file(
             dates_filepath=DATES_FILEPATH,
             object_ephemeris=ASTEROID_EPHEMERIS_FILEPATH,
             planetary_ephemeris=PLANETARY_EPHEMERIS_FILEPATH,
@@ -166,6 +167,107 @@ class Runner:
         #endregion
 
 
+        # ---------------------------------------------------------------------
+        #region Criação do catalogo de estrelas
+
+        # TODO: otimizar a query no gaia com base no tamanho aparente do objeto no ceu (rodrigo)
+        # BUSCA USANDO QC3 POLIGONO calculando tamanho aparante (objeto+terra+objeto)
+        self.logger.info("Calculate the diameter of the asteroid.")
+        
+        ast_diameter = asteroid_diameter(
+            diameter=asteroid.get("diameter", None), 
+            density_err_max=asteroid.get("density_err_max", None))
+        
+        self.logger.debug(f"Asteroid diameter: {ast_diameter}")
+
+        self.logger.info(f"Reading ephemeris file and calculating positions")
+        ra, dec, angular_diameter = read_ra_dec_from_ephemerides(
+            input=ephemeris_filepath,
+            object_diameter = ast_diameter,
+            h = asteroid.get("h", None),
+            proper_motion_compensation = PROPER_MOTION_COMPENSATION,
+        )
+        self.logger.debug(f"Positions: [{len(ra)}]")
+
+        self.logger.info(f"Generating star catalog.")
+         
+        star_catalog_cat_filepath, star_catalog_csv_filepath = generate_star_catalog(
+            ra = ra, # type: ignore
+            dec = dec, # type: ignore
+            angular_diameter = angular_diameter, # type: ignore
+            maximum_visual_magnitude = MAXIMUM_VISUAL_MAGNITUDE,
+            catalog_name=star_catalog_params.get("name"),
+            catalog_display_name=star_catalog_params.get("display_name"),
+            catalog_schema=star_catalog_params.get("schema"),
+            catalog_tablename=star_catalog_params.get("tablename"),
+            catalog_ra_property=star_catalog_params.get("ra_property"),
+            catalog_dec_property=star_catalog_params.get("dec_property"),
+            cwd=self.cwd,
+            logger=self.logger
+        )
+        #endregion
+
+
+        # ---------------------------------------------------------------------
+        #region Search Candidates - Execução do PRAIA OCC
+
+        # Quando o diametro do objeto exitir no json, ele é passado para a função search_candidates
+        # que cria o arquivo praia_occ_star_search_12.dat. Sua função é reduzir o numero de calculo necessário
+        # especialmente para objetos de diametros pequenos.
+        self.logger.info("Calculate object diameter + error")
+        object_diameter = object_diameter_plus_error(
+            asteroid.get("diameter", None), 
+            asteroid.get("diameter_err_max", None)
+        )
+        self.logger.debug(f"Object diameter: {object_diameter}")
+
+        self.logger.info("Search Candidates using PRAIA OCC")
+        occultation_filepath = search_candidates(
+            star_catalog_filepath=star_catalog_cat_filepath,
+            ephemeris_filepath=ephemeris_filepath,
+            object_diameter=object_diameter,
+            cwd=self.cwd,
+            logger=self.logger
+        )
+
+        # IMPORTANT! If the occultation file is empty, skip next steps.
+        if pd.read_csv(occultation_filepath).empty:
+            return
+        #endregion
+
+
+        # ---------------------------------------------------------------------
+        #region Prepara a tabela de occultações 
+
+        # Cria um novo dataframe a partir do arquivo de occultações. 
+        # Adiciona todas as colunas que existem na tabela de predições do portal.
+        # Como informações do asteroid, proveniencia e path_coeff.
+        # IMPORTANT! Sobreescreve o arquivo csv de ocultações com as novas colunas.
+        self.logger.info("Preparing occultation table")
+        prepare_occultation_table_dataframe(
+            occultation_table=occultation_filepath, 
+            object_data=asteroid
+        )
+        #endregion
+
+        # ---------------------------------------------------------------------
+        #region Calculating Path Coeff
+
+        # IMPORTANT! Sobreescreve o arquivo csv de ocultações com as novas colunas.
+        self.logger.info("Calculating Path Coefficients")
+        occ_count = execute_path_coeff(
+            object_data=asteroid,
+            occultation_table=occultation_filepath,
+            star_catalog=star_catalog_csv_filepath,
+            object_ephemeris=ephemeris_filepath,
+            mag_and_uncert=APMAG_UNCERTAINTY_FILEPATH,
+            planetary_ephemeris=PLANETARY_EPHEMERIS_FILEPATH,
+            leap_seconds=LEAP_SECONDS_FILEPATH,            
+            logger=self.logger
+        )
+        #endregion
+
+        self.logger.info(f"Total occultations found: {occ_count}")
 
 
         # # -------------- Daqui para baixo funciona -------------- 
@@ -334,8 +436,6 @@ class Runner:
 
         # # ---------------------------------------------------------------------
         # # Register Occultations
-
-        # # TODO: melhorar o asteroid.json colocando as infos do bsp do asteroid dentro de predict_params.
 
 
     def __exit__(self, exc_type, exc_value, traceback):
