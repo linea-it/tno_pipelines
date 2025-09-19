@@ -4,6 +4,8 @@ import argparse
 import os
 import sys
 from pathlib import Path
+from datetime import datetime
+import pandas as pd
 
 # # Add the packages directory to the Python path
 # script_dir = Path(__file__).resolve().parent
@@ -12,18 +14,16 @@ from pathlib import Path
 
 # Import from packages directory
 from utils import check_planetary_ephemeris_file, load_yml, setup_logger, load_json, get_asteroid_inputs_dir, check_leap_seconds_file
-from dao import PredictOccultationJobResultDao
-from praia_occ import search_candidates
-from generate_dates import generate_dates_file
-from generate_ephemeris import generate_ephemeris_file
 from library import asteroid_diameter, read_ra_dec_from_ephemerides, object_diameter_plus_error
+from asteroid_ephemeris import check_asteroid_ephemeris, check_uncertainty_file
+import geradata
+from generate_ephemeris import generate_ephemeris_file
+from praia_occ import search_candidates
 from star_catalog import generate_star_catalog
 from path_coeff import execute_path_coeff, prepare_occultation_table_dataframe
-from asteroid_ephemeris import check_asteroid_ephemeris, check_uncertainty_file
 
-from pathlib import Path
+from dao import PredictOccultationJobResultDao
 
-import pandas as pd
 class Runner:
 
     def __init__(self, config) -> None:
@@ -135,37 +135,35 @@ class Runner:
         os.symlink(original_leap_seconds_filepath, LEAP_SECONDS_FILEPATH)
         #endregion
 
-        # TODO: Parei AQUI!
-        # # ---------------------------------------------------------------------
-        # #region Create dates file for the specified period
-        # # TODO: usar a função nova do rodrigo.
+        # ---------------------------------------------------------------------
+        #region Create dates file for the specified period
 
-        # # Verifica no diretório de inputs se existe um arquivo dates que contenha o periodo necessário
-        # # para a predição. Se existir, faz um subset com o periodo necessário e cria um novo arquivo dates.txt no diretório de execução.
-        # # valida se o subset tem todo o periodo necessário.
+        # Verifica no diretório de inputs se existe um arquivo dates que contenha o periodo necessário
+        # para a predição. Se existir, faz um subset com o periodo necessário e cria um novo arquivo dates.txt no diretório de execução.
+        # valida se o subset tem todo o periodo necessário.
+        self.logger.info("Creating dates file")
+        DATES_FILEPATH = geradata.query_dates(
+            start_interval=datetime.strptime(START_DATE, "%Y-%m-%d"),
+            end_interval=datetime.strptime(END_DATE, "%Y-%m-%d"),
+            step=EPHEMERIS_STEP,
+            cwd=self.cwd,
+            logger=self.logger,
+        )
 
-        # DATES_FILEPATH = generate_dates_file(
-        #     start_date=START_DATE, 
-        #     end_date=END_DATE, 
-        #     ephemeris_step=EPHEMERIS_STEP, 
-        #     cwd=self.cwd, 
-        #     logger=self.logger
-        # )
-        # # TODO: Verificar se o arquivo de datas tem valores/estrutura valida.
-        # #endregion
+        #endregion
 
-        # # ---------------------------------------------------------------------
-        # #region Criação do arquivo de ephemeris
-        # EPHEMERIS_FILEPATH = generate_ephemeris_file(
-        #     dates_filepath=DATES_FILEPATH,
-        #     object_ephemeris=ASTEROID_EPHEMERIS_FILEPATH,
-        #     planetary_ephemeris=PLANETARY_EPHEMERIS_FILEPATH,
-        #     leap_seconds=LEAP_SECONDS_FILEPATH,
-        #     cwd=self.cwd, 
-        #     logger=self.logger
-        # )
-        # # TODO: Verificar se o arquivo de ephemeris tem valores/estrutura valida.
-        # #endregion
+        # ---------------------------------------------------------------------
+        #region Criação do arquivo de ephemeris
+        EPHEMERIS_FILEPATH = generate_ephemeris_file(
+            dates_filepath=DATES_FILEPATH,
+            object_ephemeris=ASTEROID_EPHEMERIS_FILEPATH,
+            planetary_ephemeris=PLANETARY_EPHEMERIS_FILEPATH,
+            leap_seconds=LEAP_SECONDS_FILEPATH,
+            cwd=self.cwd, 
+            logger=self.logger
+        )
+        # TODO: Verificar se o arquivo de ephemeris tem valores/estrutura valida.
+        #endregion
 
 
 

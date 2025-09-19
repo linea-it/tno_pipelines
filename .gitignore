@@ -4,3 +4,4 @@ __pycache__
 de440.bsp
 naif0012.tls
 data/outputs/
+data/common_inputs/
