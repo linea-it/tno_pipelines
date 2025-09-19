@@ -15,7 +15,7 @@ def generate_star_catalog(
     catalog_dec_property: str,
     cwd: str, 
     logger: logging.Logger
-) -> pathlib.Path:
+) -> tuple[pathlib.Path, pathlib.Path]:
 
     logger.info("Connecting to Catalog Database.")
 

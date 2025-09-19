@@ -170,8 +170,7 @@ def generate_ephemeris_file(
     write_ephemeris_ascii_file(eph_filepath, dates, ra, dec, distance, elongation)
 
     if eph_filepath.exists():
-        logger.info("Ephemeris file generated successfully")
-        logger.debug(f"Ephemeris filepath: [{eph_filepath}]")
+        logger.info(f"Ephemeris file generated successfully. [{eph_filepath}]")
         return eph_filepath
     else:
         raise Exception("Ephemeris file not generated.")

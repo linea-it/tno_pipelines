@@ -1,0 +1,6 @@
+{
+    "python.analysis.extraPaths": [
+        "./predict_occultation/packages"
+    ],
+    "python.defaultInterpreterPath": "/usr/bin/python3"
+}

@@ -1,16 +1,13 @@
-FROM rockylinux/rockylinux:9.5-minimal AS base
+FROM rockylinux/rockylinux:9.5 AS base
 
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8
 ENV PATH /opt/conda/bin:$PATH
 ENV SHELL /bin/zsh
 
-# Instalacao das dependências no Rocky Linux Minimal
+# Instalacao das dependências no Rocky Linux
 RUN set -x && \
-    microdnf update -y && \
-    microdnf install -y \
-    findutils \
-    tar \
-    gzip \
+    dnf update -y && \
+    dnf install -y --allowerasing \
     gcc \
     gcc-gfortran \
     ca-certificates \
@@ -23,7 +20,7 @@ RUN set -x && \
     which \
     zsh \
     curl \
-    && microdnf clean all \
+    && dnf clean all \
     && rm -rf /var/cache/dnf \
     && mkdir -p /opt/conda \
     && wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /opt/conda/miniconda.sh \
@@ -105,22 +102,15 @@ COPY --chown=:conda --chmod=775 --from=py3_build /opt/conda/envs/pipe_pred_occ /
 # PRAIA OCC binaries
 COPY --from=praia_occ /tmp/praia_occ/* /usr/local/bin
 
-# Instalar ferramentas adicionais (usando microdnf na minimal)
-# Incluindo dependências necessárias para VS Code Server
-RUN microdnf install -y \
-    findutils \
-    tar \
-    gzip \
+# Instalar ferramentas adicionais
+RUN dnf install -y --allowerasing \
     bash-completion \
     nano \
     vim \
     zsh \
     curl \
-    procps-ng \
-    lsof \               
-    shadow-utils \   
-    git \    
-    && microdnf clean all
+    && dnf clean all \
+    && rm -rf /var/cache/dnf
 
 # Create NonRoot user and add to groups
 RUN groupadd --gid ${USERGID} ${USERNAME}  \

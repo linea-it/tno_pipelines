@@ -2,8 +2,9 @@ from pydantic import BaseModel
 
 
 class Config(BaseModel):
-  message: str = "Hello World"
+  asteroid_name: str = "2008 RH167"
   asteroid_path: str = "/app/predict_occultation/process001"
+  task_id: int = 1
 
 
 if __name__ == "__main__":
