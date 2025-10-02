@@ -46,7 +46,8 @@ class DBBase:
             warnings.simplefilter("ignore", category=sa_exc.SAWarning)
 
             engine = self.get_db_engine()
-            tbl = Table(tablename, MetaData(engine), autoload=True, schema=schema)
+            metadata = MetaData()
+            tbl = Table(tablename, metadata, autoload_with=engine, schema=schema)
             return tbl
 
     def fetch_all_dict(self, stm):

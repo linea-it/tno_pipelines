@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, Optional
 import pathlib
 import logging
 import pandas as pd
@@ -25,6 +25,8 @@ from astropy.time import Time
 def prepare_occultation_table_dataframe(
     occultation_table: pathlib.Path, 
     object_data: Dict,
+    predict_params: Dict,
+    job_id: Optional[int] = None,
 ):
     # Le o arquivo occultation table e cria um dataframe
     df = pd.read_csv(
@@ -149,12 +151,12 @@ def prepare_occultation_table_dataframe(
     # Provenance Fields
     # Adiciona algumas informacoes de Proveniencia a cada evento de predicao
     # -------------------------------------------------
-    df["job_id"] = object_data["job_id"]
-    df["catalog"] = object_data["predict_params"]["star_catalog"]["display_name"]
-    df["predict_step"] = object_data["predict_params"]["ephemeris_step"]
-    df["bsp_source"] = object_data["predict_params"]["asteroid_ephemeris"]["source"]
-    df["bsp_planetary"] = object_data["predict_params"]["planetary_ephemeris"]["display_name"]
-    df["leap_seconds"] = object_data["predict_params"]["leap_seconds"]["display_name"] 
+    df["job_id"] = job_id # Opicional, obrigatório apenas para tasks submetidas pela interface de jobs.
+    df["catalog"] = predict_params["star_catalog"]["display_name"]
+    df["predict_step"] = predict_params.get("ephemeris_step", 60)
+    df["bsp_source"] = predict_params["asteroid_ephemeris"]["source"]
+    df["bsp_planetary"] = predict_params["planetary_ephemeris"]["display_name"]
+    df["leap_seconds"] = predict_params["leap_seconds"]["display_name"] 
     df["nima"] = False # NIMA nao esta sendo utilizado
     df["created_at"] = datetime.now(tz=timezone.utc)
 
@@ -216,8 +218,13 @@ def prepare_occultation_table_dataframe(
         columns=[
             "name",
             "number",
+            "principal_designation",
+            "alias",
+            "base_dynclass",
+            "dynclass",
+            "astorb_dynbaseclass",
+            "astorb_dynsubclass",
             "date_time",
-            "gaia_source_id",
             "ra_star_candidate",
             "dec_star_candidate",
             "ra_target",
@@ -226,9 +233,9 @@ def prepare_occultation_table_dataframe(
             "position_angle",
             "velocity",
             "delta",
-            "g",
+            "g_star",
             "j_star",
-            "h",
+            "h_star",
             "k_star",
             "long",
             "loc_t",
@@ -245,73 +252,66 @@ def prepare_occultation_table_dataframe(
             "dec_star_deg",
             "ra_target_deg",
             "dec_target_deg",
-            "created_at",
-            "apparent_diameter",
-            "aphelion",
-            "apparent_magnitude",
-            "dec_star_to_date",
-            "dec_star_with_pm",
-            "dec_target_apparent",
-            "diameter",
-            "e_dec_target",
-            "e_ra_target",
-            "ephemeris_version",
-            "g_mag_vel_corrected",
-            "h_mag_vel_corrected",
-            "inclination",
-            "instant_uncertainty",
             "magnitude_drop",
-            "perihelion",
-            "ra_star_to_date",
-            "ra_star_with_pm",
-            "ra_target_apparent",
+            "apparent_magnitude",
+            "g_mag_vel_corrected",
             "rp_mag_vel_corrected",
-            "semimajor_axis",
+            "h_mag_vel_corrected",
+            "instant_uncertainty",
+            "ra_star_with_pm",
+            "dec_star_with_pm",
+            "ra_star_to_date",
+            "dec_star_to_date",
+            "ra_target_apparent",
+            "dec_target_apparent",
+            "e_ra_target",
+            "e_dec_target",
+            "ephemeris_version",
             "have_path_coeff",
-            "occ_path_max_longitude",
             "occ_path_min_longitude",
-            "occ_path_coeff",
-            "occ_path_is_nightside",
-            "occ_path_max_latitude",
+            "occ_path_max_longitude",
             "occ_path_min_latitude",
-            "base_dynclass",
-            "bsp_planetary",
-            "bsp_source",
-            "catalog",
-            "dynclass",
-            "job_id",
-            "leap_seconds",
-            "nima",
-            "predict_step",
-            "albedo",
-            "albedo_err_max",
-            "albedo_err_min",
-            "alias",
-            "aphelion",
-            "arg_perihelion",
-            "astorb_dynbaseclass",
-            "astorb_dynsubclass",
-            "density",
-            "density_err_max",
-            "density_err_min",
-            "diameter_err_max",
-            "diameter_err_min",
+            "occ_path_max_latitude",
+            "occ_path_is_nightside",
+            "occ_path_coeff",
+            "h",
+            "g",
             "epoch",
+            "semimajor_axis",
             "eccentricity",
-            "last_obs_included",
+            "inclination",
             "long_asc_node",
-            "mass",
-            "mass_err_max",
-            "mass_err_min",
+            "arg_perihelion",
             "mean_anomaly",
             "mean_daily_motion",
-            "mpc_critical_list",
-            "perihelion_dist",
-            "pha_flag",
-            "principal_designation",
+            "perihelion",
+            "aphelion",
             "rms",
-            "g_star",
-            "h_star",
+            "last_obs_included",
+            "pha_flag",
+            "mpc_critical_list",
+            "albedo",
+            "albedo_err_min",
+            "albedo_err_max",
+            "density",
+            "density_err_min",
+            "density_err_max",
+            "diameter",
+            "diameter_err_min",
+            "diameter_err_max",
+            "mass",
+            "mass_err_min",
+            "mass_err_max",
+            "catalog",
+            "predict_step",
+            "bsp_source",
+            "bsp_planetary",
+            "leap_seconds",
+            "nima",
+            "created_at",
+            "job_id",
+            "gaia_source_id",
+            "apparent_diameter",
             "event_duration",
             "moon_separation",
             "sun_elongation",
@@ -319,7 +319,8 @@ def prepare_occultation_table_dataframe(
             "moon_illuminated_fraction",
             "probability_of_centrality",
             "hash_id",
-            "closest_approach_uncertainty_km",
+            "updated_at",
+            "closest_approach_uncertainty_km"
         ]
     )
     df.to_csv(occultation_table, index=False, sep=";")

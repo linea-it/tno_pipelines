@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 from datetime import datetime
 import pandas as pd
+from sqlalchemy.orm import Session
 
 # # Add the packages directory to the Python path
 # script_dir = Path(__file__).resolve().parent
@@ -22,7 +23,8 @@ from praia_occ import search_candidates
 from star_catalog import generate_star_catalog
 from path_coeff import execute_path_coeff, prepare_occultation_table_dataframe
 
-from dao import PredictOccultationJobResultDao
+from dao.task import TaskDao, PredictionState
+
 
 class Runner:
 
@@ -34,6 +36,8 @@ class Runner:
 
         self.logger = setup_logger("predict", logdir=self.cwd)
 
+        self.task_dao = TaskDao()
+        self.db_session = Session(self.task_dao.get_db_engine())
 
     def __enter__(self):
         return self
@@ -46,26 +50,37 @@ class Runner:
         self.logger.info(f"cwd: {self.cwd}")
         # self.logger.info(f"Asteroid Name: {self.config.get('asteroid_name')}")
 
+        # Update task status to RUNNING
+        self.logger.info(f"Updating task status to RUNNING. Task ID: [{self.config.get('task_id')}]")
+        self.task_dao.update_task_status(
+            db_session=self.db_session, 
+            task_id=self.config.get('task_id'), 
+            new_state=PredictionState.RUNNING
+        )
+
+
         # Read asteroid json with all the data
         self.logger.info("Reading asteroid.json file")
         # TODO: Validar o formato do asteroid.json
-        asteroid = load_json(Path(self.cwd).joinpath("asteroid.json"))
+        data = load_json(Path(self.cwd).joinpath("asteroid.json"))
 
+        # Parametros do asteroide
+        asteroid = data["asteroid"]
         # Principais parâmetros para a predição
-        predict_params = asteroid.get("predict_params")
+        predict_params = data["predict_params"]
         # Periodo para o qual a predição será feita
-        START_DATE = predict_params.get("start_date") # type: ignore
-        END_DATE = predict_params.get("end_date") # type: ignore
-        EPHEMERIS_STEP = predict_params.get("ephemeris_step") # type: ignore
+        START_DATE = predict_params["start_date"]
+        END_DATE = predict_params["end_date"]
+        EPHEMERIS_STEP = predict_params.get("ephemeris_step", 60)
         MAXIMUM_VISUAL_MAGNITUDE = predict_params.get("maximum_visual_magnitude", 18) # type: ignore
         PROPER_MOTION_COMPENSATION = predict_params.get("proper_motion_compensation") # type: ignore
 
-        planetary_ephemeris_info = predict_params.get("planetary_ephemeris") # type: ignore
-        leap_seconds_info = predict_params.get("leap_seconds") # type: ignore
-        star_catalog_params = predict_params.get("star_catalog") # type: ignore
+        planetary_ephemeris_info = predict_params["planetary_ephemeris"]
+        leap_seconds_info = predict_params["leap_seconds"]
+        star_catalog_params = predict_params["star_catalog"]
 
         # Diretório de inputs externos dos asteroids (bsp, apmag_and_uncertainties, etc)
-        ASTEROID_INPUTS_DIR = get_asteroid_inputs_dir(asteroid.get("alias")) # type: ignore
+        ASTEROID_INPUTS_DIR = get_asteroid_inputs_dir(data["alias"])
         self.logger.info(f"Asteroid inputs dir: {ASTEROID_INPUTS_DIR}")
 
 
@@ -73,16 +88,16 @@ class Runner:
         #region Check asteroid ephemeris file (bsp) exists and is valid for the required period
         # and create a symbolic link to the execution directory if valid
         self.logger.info("Checking asteroid ephemeris file")
-        asteroid_ephemeris_info = predict_params.get("asteroid_ephemeris") # type: ignore
+        asteroid_ephemeris_info = predict_params["asteroid_ephemeris"]
 
         # Local onde estão os arquivos bsp, apmag_and_uncertainties, etc previamente baixados
-        bsp_filename = asteroid_ephemeris_info.get("filename")
+        bsp_filename = asteroid_ephemeris_info["filename"]
         original_bsp_filepath = Path(ASTEROID_INPUTS_DIR, bsp_filename)  # type: ignore
 
         check_asteroid_ephemeris(
             bsp_filepath=original_bsp_filepath,
-            bsp_period_start=asteroid_ephemeris_info.get("start_period"), # type: ignore
-            bsp_period_end=asteroid_ephemeris_info.get("end_period"), # type: ignore
+            bsp_period_start=asteroid_ephemeris_info["start_period"],
+            bsp_period_end=asteroid_ephemeris_info["end_period"],
             required_period_start=START_DATE,
             required_period_end=END_DATE,
         )
@@ -97,7 +112,7 @@ class Runner:
         # ---------------------------------------------------------------------
         #region Check asteroid uncertainty file exists
         self.logger.info("Checking asteroid uncertainty file")
-        uncertainty_filename = asteroid_ephemeris_info.get("mag_and_uncert_file")
+        uncertainty_filename = asteroid_ephemeris_info["mag_and_uncert_filename"]
         original_uncertainty_filepath = Path(ASTEROID_INPUTS_DIR, uncertainty_filename)  # type: ignore
 
         check_uncertainty_file(original_uncertainty_filepath)
@@ -190,7 +205,7 @@ class Runner:
         self.logger.debug(f"Positions: [{len(ra)}]")
 
         self.logger.info(f"Generating star catalog.")
-         
+
         star_catalog_cat_filepath, star_catalog_csv_filepath = generate_star_catalog(
             ra = ra, # type: ignore
             dec = dec, # type: ignore
@@ -246,7 +261,9 @@ class Runner:
         self.logger.info("Preparing occultation table")
         prepare_occultation_table_dataframe(
             occultation_table=occultation_filepath, 
-            object_data=asteroid
+            object_data=asteroid,
+            predict_params=predict_params,
+            job_id=self.config.get('job_id', None)
         )
         #endregion
 
@@ -270,180 +287,26 @@ class Runner:
         self.logger.info(f"Total occultations found: {occ_count}")
 
 
-        # # -------------- Daqui para baixo funciona -------------- 
-        # # Instantiate DAO for task management
-        # # task_dao = PredictOccultationJobResultDao()
-
-        # # Change task status to running
-        # # task_dao.update(id=task_id, data={"status": 4})
-
-        # # TODO: Parametros da execução 
-        # predict_params = asteroid.get("predict_params")
-
-        # star_catalog_params = predict_params.get("star_catalog")
-
-        # START_DATE = predict_params.get("start_date")
-        # END_DATE = predict_params.get("end_date")
-        # EPHEMERIS_STEP = predict_params.get("ephemeris_step")
-        # MAXIMUM_VISUAL_MAGNITUDE = predict_params.get("maximum_visual_magnitude")
-        # PROPER_MOTION_COMPENSATION = predict_params.get("proper_motion_compensation")
-        
-        # # TODO: Verificar se os inputs existem no diretório de execução
-        # asteroid_ephemeris = predict_params.get("asteroid_ephemeris")
-        # OBJECT_EPHEMERIS_FILEPATH = Path(self.cwd, asteroid_ephemeris.get("filename"))
-        # APMAG_UNCERTAINTY_FILEPATH = Path(self.cwd, asteroid_ephemeris.get("mag_and_uncert_file"))
-
-        # # TODO: Criar link para os arquivos leap_seconds e planetary_ephemeris
-        # # TODO: Esses paths do de440 e naif0012 vão vir a partir da configuração
-        # # por que precisa ser criado um link desses arquivos no diretório do asteroid. 
-        # # LEAP_SECONDS = predict_params["leap_seconds"].get("name")
-        # # PLANETARY_EPHEMERIS = predict_params["planetary_ephemeris"].get("name")
-        # ORIGIN_PLANETARY_EPHEMERIS_FILEPATH = Path(os.getenv("PLANETARY_EPHEMERIS_FILEPATH"))
-        # PLANETARY_EPHEMERIS_FILEPATH = Path(self.cwd, ORIGIN_PLANETARY_EPHEMERIS_FILEPATH.name)
-
-        # if not PLANETARY_EPHEMERIS_FILEPATH.exists():
-        #     self.logger.info(f"Creating link to planetary ephemeris file. {ORIGIN_PLANETARY_EPHEMERIS_FILEPATH} -> {PLANETARY_EPHEMERIS_FILEPATH}")
-        #     os.symlink(ORIGIN_PLANETARY_EPHEMERIS_FILEPATH, PLANETARY_EPHEMERIS_FILEPATH)
-        # else:
-        #     self.logger.warning("Using previously created planetary ephemeris file.")
-
-        # ORIGIN_LEAP_SECONDS_FILEPATH = Path(os.getenv("LEAP_SECONDS_FILEPATH"))
-        # LEAP_SECONDS_FILEPATH = Path(self.cwd, ORIGIN_LEAP_SECONDS_FILEPATH.name)
-        # if not LEAP_SECONDS_FILEPATH.exists():
-        #     self.logger.info(f"Creating link to leap seconds file. {ORIGIN_LEAP_SECONDS_FILEPATH} -> {LEAP_SECONDS_FILEPATH}")
-        #     os.symlink(ORIGIN_LEAP_SECONDS_FILEPATH, LEAP_SECONDS_FILEPATH)
-        # else:
-        #     self.logger.warning("Using previously created leap seconds file.")
-        
-        # # ---------------------------------------------------------------------
-        # # Criação do arquivo de datas.
-        # # If the dates.txt file already exists in the specified directory, 
-        # # it will use the existing file.
-        # dates_filepath = Path(self.cwd, "dates.txt")
-        # if dates_filepath.exists():
-        #     self.logger.info("Using previously created date file.")
-        # else:
-        #     dates_filepath = generate_dates_file(
-        #         start_date=START_DATE, 
-        #         end_date=END_DATE, 
-        #         ephemeris_step=EPHEMERIS_STEP, 
-        #         cwd=self.cwd, 
-        #         logger=self.logger)
-        # # TODO: Verificar se o arquivo de datas tem valores/estrutura valida.
-
-        # # ---------------------------------------------------------------------
-        # # Criação do arquivo de ephemeris
-        # ephemeris_filepath = generate_ephemeris_file(
-        #     dates_filepath=dates_filepath,
-        #     object_ephemeris=OBJECT_EPHEMERIS_FILEPATH,
-        #     planetary_ephemeris=PLANETARY_EPHEMERIS_FILEPATH,
-        #     leap_seconds=LEAP_SECONDS_FILEPATH,
-        #     cwd=self.cwd, 
-        #     logger=self.logger
-        # )
-        # # TODO: Verificar se o arquivo de ephemeris tem valores/estrutura valida.
-
-        # # ---------------------------------------------------------------------
-        # # Criação do catalogo de estrelas
-
-        # # TODO: otimizar a query no gaia com base no tamanho aparente do objeto no ceu (rodrigo)
-        # # BUSCA USANDO QC3 POLIGONO calculando tamanho aparante (objeto+terra+objeto)
-        # self.logger.info("Calculate the diameter of the asteroid.")
-        
-        # ast_diameter = asteroid_diameter(
-        #     diameter=asteroid.get("diameter", None), 
-        #     density_err_max=asteroid.get("density_err_max", None))
-        
-        # self.logger.debug(f"Asteroid diameter: {ast_diameter}")
-
-        # self.logger.info(f"Reading ephemeris file and calculating positions")
-        # ra, dec, angular_diameter = read_ra_dec_from_ephemerides(
-        #     input=ephemeris_filepath,
-        #     object_diameter = ast_diameter,
-        #     h = asteroid.get("h", None),
-        #     proper_motion_compensation = PROPER_MOTION_COMPENSATION,
-        # )
-        # self.logger.debug(f"Positions: [{len(ra)}]")
-
-        # self.logger.info(f"Generating star catalog.")
-        # praia_star_catalog_filepath, star_catalog_csv = generate_star_catalog(
-        #     ra = ra,
-        #     dec = dec,
-        #     angular_diameter = angular_diameter,
-        #     maximum_visual_magnitude = MAXIMUM_VISUAL_MAGNITUDE,
-        #     catalog_name=star_catalog_params.get("name"),
-        #     catalog_display_name=star_catalog_params.get("display_name"),
-        #     catalog_schema=star_catalog_params.get("schema"),
-        #     catalog_tablename=star_catalog_params.get("tablename"),
-        #     catalog_ra_property=star_catalog_params.get("ra_property"),
-        #     catalog_dec_property=star_catalog_params.get("dec_property"),
-        #     cwd=self.cwd,
-        #     logger=self.logger
-        # )
-
-        # # ---------------------------------------------------------------------
-        # # Search Candidates - Execução do PRAIA OCC
-
-        # # Quando o diametro do objeto exitir no json, ele é passado para a função search_candidates
-        # # que cria o arquivo praia_occ_star_search_12.dat. Sua função é reduzir o numero de calculo necessário
-        # # especialmente para objetos de diametros pequenos.
-        # self.logger.info("Calculate object diamenter + error")
-        # object_diameter = object_diameter_plus_error(
-        #     asteroid.get("diameter", None), 
-        #     asteroid.get("diameter_err_max", None)
-        # )
-        # self.logger.debug(f"Object diameter: {object_diameter}")
-
-        # self.logger.info("Search Candidates using PRAIA OCC")
-        # occultation_filepath = search_candidates(
-        #     star_catalog_filepath=praia_star_catalog_filepath,
-        #     ephemeris_filepath=ephemeris_filepath,
-        #     object_diameter=object_diameter,
-        #     cwd=self.cwd,
-        #     logger=self.logger
-        # )
-
-        # # IMPORTANT! If the occultation file is empty, skip next steps.
-        # if pd.read_csv(occultation_filepath).empty:
-        #     return
-
-        # # ---------------------------------------------------------------------
-        # # Prepara a tabela de occultações 
-
-        # # Cria um novo dataframe a partir do arquivo de occultações. 
-        # # Adiciona todas as colunas que existem na tabela de predições do portal.
-        # # Como informações do asteroid, proveniencia e path_coeff.
-        # # IMPORTANT! Sobreescreve o arquivo csv de ocultações com as novas colunas.
-        # prepare_occultation_table_dataframe(
-        #     occultation_table=occultation_filepath, 
-        #     object_data=asteroid
-        # )
-
-        # # ---------------------------------------------------------------------
-        # # Calculating Path Coeff
-        # # IMPORTANT! Sobreescreve o arquivo csv de ocultações com as novas colunas.
-        # self.logger.info("Calculating Path Coefficients")
-        # execute_path_coeff(
-        #     object_data=asteroid,
-        #     occultation_table=occultation_filepath,
-        #     star_catalog=star_catalog_csv,
-        #     object_ephemeris=OBJECT_EPHEMERIS_FILEPATH,
-        #     mag_and_uncert=APMAG_UNCERTAINTY_FILEPATH,
-        #     planetary_ephemeris=PLANETARY_EPHEMERIS_FILEPATH,
-        #     leap_seconds=LEAP_SECONDS_FILEPATH,            
-        #     logger=self.logger
-        # )
-
-        # # ---------------------------------------------------------------------
-        # # Register Occultations
-
-
     def __exit__(self, exc_type, exc_value, traceback):
 
         if exc_type:
-            # self.logger.error("%s: %s", exc_type.__name__, exc_value)
-            # self.logger.debug(traceback.print_exc())
             self.logger.error("%s: %s", exc_type.__name__, exc_value, exc_info=(exc_type, exc_value, traceback))            
+            # Update task status to FAILED
+            self.logger.info(f"Updating task status to FAILED. Task ID: [{self.config.get('task_id')}]")
+            self.task_dao.mark_task_failed(
+                db_session=self.db_session, 
+                task_id=self.config.get('task_id'), 
+                error_message=f"{exc_type.__name__}: {exc_value}"
+            )
+
+        else:
+            # Update task status to WAITING_RESULTS
+            self.logger.info(f"Updating task status to WAITING_RESULTS. Task ID: [{self.config.get('task_id')}]")
+            self.task_dao.update_task_status(
+                db_session=self.db_session, 
+                task_id=self.config.get('task_id'), 
+                new_state=PredictionState.WAITING_RESULTS
+            )
 
         self.logger.info("done!")
             

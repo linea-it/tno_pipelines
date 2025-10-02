@@ -1,10 +1,12 @@
+from typing import Optional
 from pydantic import BaseModel
 
 
 class Config(BaseModel):
+  task_id: int = 1
+  job_id: Optional[int] = None
   asteroid_name: str = "2008 RH167"
   asteroid_path: str = "/app/predict_occultation/process001"
-  task_id: int = 1
 
 
 if __name__ == "__main__":
