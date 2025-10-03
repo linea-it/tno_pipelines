@@ -7,6 +7,7 @@ from sqlalchemy import MetaData, Table, create_engine
 from sqlalchemy import exc as sa_exc
 from sqlalchemy.pool import NullPool
 from sqlalchemy.sql import and_, select
+from sqlalchemy.dialects import postgresql
 
 
 class MissingDBURIException(Exception):
@@ -46,7 +47,8 @@ class DBBase:
             warnings.simplefilter("ignore", category=sa_exc.SAWarning)
 
             engine = self.get_db_engine()
-            tbl = Table(tablename, MetaData(engine), autoload=True, schema=schema)
+            metadata = MetaData()
+            tbl = Table(tablename, metadata, autoload_with=engine, schema=schema)
             return tbl
 
     def fetch_all_dict(self, stm):
@@ -85,6 +87,18 @@ class DBBase:
         engine = self.get_db_engine()
         with engine.connect() as con:
             return con.execute(stm).scalar()
+
+    def debug_query(self, stm, with_parameters=False):
+        sql = str(
+            stm.compile(
+                dialect=postgresql.dialect(),
+                compile_kwargs={"literal_binds": with_parameters},
+            )
+        )
+
+        # Remove new lines
+        sql = sql.replace("\n", " ").replace("\r", "")
+        return sql
 
     # def get_job_by_id(self, id):
 

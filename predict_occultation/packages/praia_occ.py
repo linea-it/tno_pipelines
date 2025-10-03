@@ -1,16 +1,18 @@
 import logging
-import pathlib
-import numpy as np
-from typing import Optional
-import subprocess
 import os
-from datetime import datetime
+import pathlib
 import shutil
+import subprocess
+from datetime import datetime
+from typing import Optional
+
+import numpy as np
 from utils import count_lines
 
+
 def get_best_projected_search_radius(
-        object_ephemeris:pathlib.Path, 
-        object_diameter: Optional[float]):
+    object_ephemeris: pathlib.Path, object_diameter: Optional[float]
+):
     """
     Calculate the best projected search circle based on object ephemeris.
 
@@ -41,10 +43,12 @@ def get_best_projected_search_radius(
     projected_search_radius = projected_search_diameter / 2
     return np.around(projected_search_radius, 4)
 
+
 def get_minimum_outreach_radius(projected_search_radius):
     # The minimum outreach radius is X % greater than the projected search radius.
     # All stars outside this region will be discounted to accelarate computations
     return projected_search_radius * 1
+
 
 def get_position_from_occ_table(data_array, index_list):
     """Function to extract right ascension or declination from a array
@@ -58,6 +62,7 @@ def get_position_from_occ_table(data_array, index_list):
     """
     return [" ".join(pos) for pos in data_array[:, index_list]]
 
+
 def praia_occ_input_file(
     star_catalog_filepath: pathlib.Path,
     ephemeris_filepath: pathlib.Path,
@@ -65,7 +70,7 @@ def praia_occ_input_file(
     minimum_outreach_radius: float,
     cwd: str,
 ):
-    
+
     # Atenção! Nome do Arquivo de input está HARDCODED!
     filename = "praia_occ_star_search_12.dat"
 
@@ -73,9 +78,10 @@ def praia_occ_input_file(
     stars_catalog_mini_filename = "g4_micro_catalog_JOHNSTON_2018"
     stars_catalog_xy_filename = "g4_occ_catalog_JOHNSTON_2018"
     stars_parameters_of_occultation_filename = "g4_occ_data_JOHNSTON_2018"
-    stars_parameters_of_occultation_plot_filename = "g4_occ_data_JOHNSTON_2018_table" # Este é o arquivo de resultados com as occultaçoes
+    stars_parameters_of_occultation_plot_filename = "g4_occ_data_JOHNSTON_2018_table"  # Este é o arquivo de resultados com as occultaçoes
 
-    input_template =("""{stellar_catalog}| input  file : final xy catalog with all stars from global reduction
+    input_template = (
+        """{stellar_catalog}| input  file : final xy catalog with all stars from global reduction
 {object_ephemeris}| input  file : ephemeris of occulting body
 1                                                 | ephemeris format: 1 - NAIF ; 2 - Horizons general format; 3 -  Horizons Pluto and satellites format
 DE435/JPL                                         | Ephemeris label
@@ -91,13 +97,18 @@ DE435/JPL                                         | Ephemeris label
 +0.00000d0                                        | aofra	 Linear (RA,DEC) ephemeris drift: offra = aofra * t + bofra
 +00.0000d0                                        | bofde					  offde = aofde * t + bofde
 +0.00000d0                                        | aofde					  offra, offde in (mas), t in years
-***********************************************************************************************************************************************************""").format(
+***********************************************************************************************************************************************************"""
+    ).format(
         stellar_catalog=star_catalog_filepath.name.ljust(50),
         object_ephemeris=ephemeris_filepath.name.ljust(50),
         stars_catalog_mini=stars_catalog_mini_filename.ljust(50),
         stars_catalog_xy=stars_catalog_xy_filename.ljust(50),
-        stars_parameters_of_occultation=stars_parameters_of_occultation_filename.ljust(50),
-        stars_parameters_of_occultation_plot=stars_parameters_of_occultation_plot_filename.ljust(50),
+        stars_parameters_of_occultation=stars_parameters_of_occultation_filename.ljust(
+            50
+        ),
+        stars_parameters_of_occultation_plot=stars_parameters_of_occultation_plot_filename.ljust(
+            50
+        ),
         projected_search_circle=f"{projected_search_circle:2.7f}".ljust(50),
         minimum_outreach_radius=f"{minimum_outreach_radius:2.7f}".ljust(50),
     )
@@ -111,6 +122,7 @@ DE435/JPL                                         | Ephemeris label
 
     return filepath
 
+
 def run_praia_occ(
     input_filepath: pathlib.Path,
     cwd: str,
@@ -121,7 +133,7 @@ def run_praia_occ(
 
     log = pathlib.Path(cwd, "praia_star_search.log")
 
-    # Diretório onde o script está sendo executado. 
+    # Diretório onde o script está sendo executado.
     original_cwd = os.getcwd()
     logger.info(f"Original Execution CWD: [{original_cwd}]")
 
@@ -145,13 +157,14 @@ def run_praia_occ(
             p.communicate()
 
     except Exception as e:
-        msg=f"Error in PRAIA OCC: {e}"
+        msg = f"Error in PRAIA OCC: {e}"
         logger.error(msg)
         raise Exception(msg)
     finally:
         # OBRIGATÓRIO voltar para o diretório original da execução.
         os.chdir(original_cwd)
         logger.info(f"Returning to original CWD: [{original_cwd}]")
+
 
 def fix_praia_occ_table(filepath: pathlib.Path):
 
@@ -176,6 +189,7 @@ def fix_praia_occ_table(filepath: pathlib.Path):
     inoutFile.truncate()  # clean the file (delete all content)
     inoutFile.writelines(contents)  # write the new content in the blank file
     inoutFile.close()
+
 
 def ascii_to_csv(ascii_filepath: pathlib.Path, csv_filepath: pathlib.Path):
     """Function to convert data from ascii table (generate by PRAIA OCC) to csv file
@@ -223,6 +237,7 @@ def ascii_to_csv(ascii_filepath: pathlib.Path, csv_filepath: pathlib.Path):
 
     np.savetxt(csv_filepath, newData, fmt="%s", header=colNames, delimiter=";")
 
+
 def search_candidates(
     star_catalog_filepath: pathlib.Path,
     ephemeris_filepath: pathlib.Path,
@@ -238,27 +253,22 @@ def search_candidates(
     logger.debug(f"Projected search circle: [{projected_search_circle}]")
 
     logger.info("Calculating minimum outreach radius")
-    minimum_outreach_radius = get_minimum_outreach_radius(
-        projected_search_circle
-    )
+    minimum_outreach_radius = get_minimum_outreach_radius(projected_search_circle)
     logger.debug(f"Minimum outreach radius: [{minimum_outreach_radius}]")
 
     logger.info("Preparing Praia Occultation Input file")
-    input_filepath =  praia_occ_input_file(
-        star_catalog_filepath=star_catalog_filepath, 
-        ephemeris_filepath=ephemeris_filepath, 
-        projected_search_circle=projected_search_circle, 
-        minimum_outreach_radius=minimum_outreach_radius, 
-        cwd=cwd)
+    input_filepath = praia_occ_input_file(
+        star_catalog_filepath=star_catalog_filepath,
+        ephemeris_filepath=ephemeris_filepath,
+        projected_search_circle=projected_search_circle,
+        minimum_outreach_radius=minimum_outreach_radius,
+        cwd=cwd,
+    )
     logger.info("Praia Occultation Input file generated successfully.")
     logger.debug(f"PRAIA OCC .dat file: [{input_filepath}]")
 
-
     # Running Praia Occultation
-    run_praia_occ(
-        input_filepath=input_filepath, 
-        cwd=cwd, 
-        logger=logger)
+    run_praia_occ(input_filepath=input_filepath, cwd=cwd, logger=logger)
 
     # OBS: nome do arquivo de output está hardcoded no input file
     praia_occ_table = pathlib.Path(cwd, "g4_occ_data_JOHNSTON_2018_table")
@@ -290,7 +300,7 @@ def search_candidates(
     shutil.copy(occultation_table, praia_occultation_table)
 
     # Count number of occultation events for debug
-    count = count_lines(occultation_table) -1   # -1 to exclude header
+    count = count_lines(occultation_table) - 1  # -1 to exclude header
     logger.debug(f"Number of occultation events: [{count}]")
 
     return occultation_table

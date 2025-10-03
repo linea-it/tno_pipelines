@@ -1,8 +1,9 @@
+import logging
 import math
+import pathlib
 
 import spiceypy as spice
-import pathlib
-import logging
+
 
 def findIDSPK(n, key):
     # OBS: Esta função está lendo o bsp do objeto direto da biblioteca spice.
@@ -13,6 +14,7 @@ def findIDSPK(n, key):
         if row[: len(key)] == key:
             spk = row[len(key) :].strip()
     return spk
+
 
 def angle(v1, v2):
     """
@@ -28,6 +30,7 @@ def dotproduct(v1, v2):
 
 def norm(v):
     return math.sqrt(dotproduct(v, v))
+
 
 def HMS2deg(ra="", dec=""):
     RA, DEC, rs, ds = "", "", 1, 1
@@ -50,6 +53,7 @@ def HMS2deg(ra="", dec=""):
     else:
         return RA or DEC
 
+
 def ra2HMS(rarad=""):
     radeg = math.degrees(rarad)
     raH = int(radeg / 15.0)
@@ -70,14 +74,16 @@ def dec2DMS(decrad=""):
     DEC = "{}{:02d} {:02d} {:06.3f}".format(ds, deg, decM, decS)
     return DEC
 
+
 def write_ephemeris_ascii_file(
-        filepath: pathlib.Path, 
-        dates: list, 
-        ra: list, 
-        dec: list, 
-        distance: list, 
-        elongation: list):
-    
+    filepath: pathlib.Path,
+    dates: list,
+    ra: list,
+    dec: list,
+    distance: list,
+    elongation: list,
+):
+
     n = len(dates)
     with open(filepath, "w") as outFile:
         outFile.write(
@@ -85,19 +91,21 @@ def write_ephemeris_ascii_file(
         )
         outFile.write(" ".ljust(43) + "DIST (km)" + " ".ljust(24) + "S-O-A\n")
         for i in range(n):
-            outFile.write(dates[i] + " ".ljust(44) + ra[i] + "  " + dec[i] + " ".ljust(35))
+            outFile.write(
+                dates[i] + " ".ljust(44) + ra[i] + "  " + dec[i] + " ".ljust(35)
+            )
             outFile.write("{:.16E}".format(distance[i]) + " ".ljust(17))
             outFile.write("{:.4f}".format(elongation[i]) + "\n")
 
 
 def generate_ephemeris_file(
-        dates_filepath: pathlib.Path, 
-        object_ephemeris: pathlib.Path, 
-        planetary_ephemeris: pathlib.Path, 
-        leap_seconds: pathlib.Path, 
-        cwd: str,
-        logger: logging.Logger
-    ):
+    dates_filepath: pathlib.Path,
+    object_ephemeris: pathlib.Path,
+    planetary_ephemeris: pathlib.Path,
+    leap_seconds: pathlib.Path,
+    cwd: str,
+    logger: logging.Logger,
+):
     logger.info("Generating ephemeris file")
 
     logger.debug(f"Dates filepath: [{dates_filepath}]")
@@ -153,7 +161,7 @@ def generate_ephemeris_file(
 
     # TODO: Revisar se este arquivo radec.txt está sendo utilizado
     # # ================= for graphics =================
-    # radec_filepath = pathlib.Path(cwd, "radec.txt")    
+    # radec_filepath = pathlib.Path(cwd, "radec.txt")
     # radecFile = open(radec_filepath, "w")
     # for row in data:
     #     radecFile.write(str(row[1]) + ";" + str(row[2]) + "\n")

@@ -174,7 +174,7 @@ RUN /bin/bash -c "source /opt/conda/bin/activate \
     && conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main \
     && conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r \
     && conda activate base \
-    && pip install pydantic PyYaml"
+    && pip install pydantic PyYaml black isort"
 
 ENV PATH=${PATH}:/home/${USERNAME}/.local/bin
 
