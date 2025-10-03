@@ -1,8 +1,8 @@
+import logging
 import math
+import pathlib
 
 import spiceypy as spice
-import pathlib
-import logging
 
 
 def findIDSPK(n, key):

@@ -1,26 +1,20 @@
-from typing import Dict, Optional
-import pathlib
-import logging
-import pandas as pd
-from datetime import datetime, timezone
-from library import (
-    ra_hms_to_deg,
-    dec_hms_to_deg,
-    get_mag_ra_dec_uncertainties_interpolator,
-    asteroid_visual_magnitude,
-    compute_magnitude_drop,
-    get_apparent_diameter,
-    get_event_duration,
-    get_moon_and_sun_separation,
-    get_moon_illuminated_fraction,
-    get_instant_uncertainty,
-    get_closest_approach_uncertainty,
-    generate_hash,
-)
-from occviz import occultation_path_coeff
 import json
+import logging
+import pathlib
+from datetime import datetime, timezone
+from typing import Dict, Optional
+
 import numpy as np
+import pandas as pd
 from astropy.time import Time
+from library import (asteroid_visual_magnitude, compute_magnitude_drop,
+                     dec_hms_to_deg, generate_hash, get_apparent_diameter,
+                     get_closest_approach_uncertainty, get_event_duration,
+                     get_instant_uncertainty,
+                     get_mag_ra_dec_uncertainties_interpolator,
+                     get_moon_and_sun_separation,
+                     get_moon_illuminated_fraction, ra_hms_to_deg)
+from occviz import occultation_path_coeff
 
 
 def prepare_occultation_table_dataframe(

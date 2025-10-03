@@ -1,11 +1,12 @@
 import logging
-import pathlib
-import numpy as np
-from typing import Optional
-import subprocess
 import os
-from datetime import datetime
+import pathlib
 import shutil
+import subprocess
+from datetime import datetime
+from typing import Optional
+
+import numpy as np
 from utils import count_lines
 
 

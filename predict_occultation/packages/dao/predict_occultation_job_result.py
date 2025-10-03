@@ -1,9 +1,9 @@
 from datetime import timedelta
+from typing import List
 
 from dao.db_base import DBBase
-from sqlalchemy.sql import and_, delete, select
 from sqlalchemy import func
-from typing import List
+from sqlalchemy.sql import and_, delete, select
 
 
 class PredictOccultationJobResultDao(DBBase):

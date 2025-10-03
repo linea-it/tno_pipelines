@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 
 import os
-import sys
 import pathlib
 import subprocess
-import yaml
+import sys
 import time
-from packages.dao.task import TaskDao, PredictionState
-from sqlalchemy.orm import Session
+
+import yaml
 from config import Config
+from packages.dao.task import PredictionState, TaskDao
+from sqlalchemy.orm import Session
 
 
 def run_command_and_stream_output(command):

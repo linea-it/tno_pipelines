@@ -1,13 +1,13 @@
 import collections
+import logging
 import os
+import pathlib
 
 import numpy as np
 import pandas as pd
 from sqlalchemy import MetaData, Table, create_engine
 from sqlalchemy.pool import NullPool
 from sqlalchemy.sql import text
-import logging
-import pathlib
 
 
 def compute_strip_boundaries(ra, dec, angdiam):

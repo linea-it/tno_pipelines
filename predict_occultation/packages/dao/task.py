@@ -1,10 +1,11 @@
 import datetime
+from enum import StrEnum
+
 from dao.db_base import DBBase
 from sqlalchemy import update
-from sqlalchemy.sql import and_, select
-from sqlalchemy.exc import OperationalError
 from sqlalchemy.dialects import postgresql
-from enum import StrEnum
+from sqlalchemy.exc import OperationalError
+from sqlalchemy.sql import and_, select
 
 
 class PredictionState(StrEnum):

@@ -1,10 +1,10 @@
+import json
 import logging
+import os
 import pathlib
 from typing import Any, Dict
 
 import yaml
-import json
-import os
 
 
 def setup_logger(name="predict", logdir="."):

@@ -12,15 +12,8 @@ from typing import Optional, Union
 import astropy.constants as const
 import astropy.units as u
 import numpy as np
-from astropy.coordinates import (
-    GCRS,
-    ITRS,
-    Angle,
-    EarthLocation,
-    SkyCoord,
-    SkyOffsetFrame,
-    get_sun,
-)
+from astropy.coordinates import (GCRS, ITRS, Angle, EarthLocation, SkyCoord,
+                                 SkyOffsetFrame, get_sun)
 from astropy.time import Time
 from scipy.interpolate import CubicSpline
 
