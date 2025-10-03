@@ -9,7 +9,9 @@ import time
 import yaml
 from config import Config
 from packages.dao.task import PredictionState, TaskDao
+from packages.dao.worker import WorkerDao
 from sqlalchemy.orm import Session
+
 
 
 def run_command_and_stream_output(command):
@@ -57,8 +59,9 @@ def main():
         task = task_dao.get_next_task(db_session, PredictionState.QUEUED)
         if not task:
             # print("No QUEUED tasks found.")
+            time.sleep(interval)
             return
-
+        print("=" * 60)
         print(f"Found task id: [{task.id}]")  # type: ignore
 
         if not task.workdir:
@@ -105,13 +108,16 @@ if __name__ == "__main__":
 
     interval = int(os.getenv("INTERVAL", 2))
 
+    print("=" * 60)
+    print("Local Runner")
+    worker_dao = WorkerDao()
+    worker_name = os.getenv("WORKER_NAME", "worker_runner_1")
+    worker_dao.initialize_heartbeat(worker_name)
+
     while True:
         try:
-            print("=" * 60)
-            print("Local Runner")
             main()
         except Exception as e:
             print(f"Unexpected error in main loop: {e}")
         finally:
-            # print(f"Waiting for {interval} seconds")
-            time.sleep(interval)
+            worker_dao.send_heartbeat(worker_name)

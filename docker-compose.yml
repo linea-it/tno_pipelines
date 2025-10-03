@@ -12,3 +12,6 @@ services:
 
     # command: /bin/sh -c "while sleep 1000; do :; done"
     command: /bin/bash --login -c ". /app/env.sh && /app/predict_occultation/local.sh"
+    environment:
+      WORKER_NAME: worker_runner_1
+

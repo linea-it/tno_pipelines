@@ -3,7 +3,6 @@ from enum import StrEnum
 
 from dao.db_base import DBBase
 from sqlalchemy import update
-from sqlalchemy.dialects import postgresql
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.sql import and_, select
 
@@ -29,17 +28,17 @@ class TaskDao(DBBase):
         self.base_delay = 60  # Base delay in seconds for retries
         self.tbl = self.get_table("predict_occultation_predictiontask")
 
-    def debug_query(self, stm, with_parameters=False):
-        sql = str(
-            stm.compile(
-                dialect=postgresql.dialect(),
-                compile_kwargs={"literal_binds": with_parameters},
-            )
-        )
+    # def debug_query(self, stm, with_parameters=False):
+    #     sql = str(
+    #         stm.compile(
+    #             dialect=postgresql.dialect(),
+    #             compile_kwargs={"literal_binds": with_parameters},
+    #         )
+    #     )
 
-        # Remove new lines
-        sql = sql.replace("\n", " ").replace("\r", "")
-        return sql
+    #     # Remove new lines
+    #     sql = sql.replace("\n", " ").replace("\r", "")
+    #     return sql
 
     def get_next_task(self, db_session, state_to_process):
         try:
