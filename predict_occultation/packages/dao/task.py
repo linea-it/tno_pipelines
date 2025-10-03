@@ -1,10 +1,11 @@
 import datetime
 from dao.db_base import DBBase
 from sqlalchemy import update
-from sqlalchemy.sql import and_,  select
+from sqlalchemy.sql import and_, select
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.dialects import postgresql
 from enum import StrEnum
+
 
 class PredictionState(StrEnum):
     PENDING = "PENDING"
@@ -19,6 +20,7 @@ class PredictionState(StrEnum):
     FAILED = "FAILED"
     STALLED = "STALLED"
     ABORTED = "ABORTED"
+
 
 class TaskDao(DBBase):
     def __init__(self):
@@ -38,7 +40,6 @@ class TaskDao(DBBase):
         sql = sql.replace("\n", " ").replace("\r", "")
         return sql
 
-
     def get_next_task(self, db_session, state_to_process):
         try:
             stm = (
@@ -46,7 +47,11 @@ class TaskDao(DBBase):
                 .where(
                     self.tbl.c.state == state_to_process,
                     self.tbl.c.aborted == False,
-                    (self.tbl.c.next_retry_at == None) | (self.tbl.c.next_retry_at <= datetime.datetime.now(tz=datetime.timezone.utc))
+                    (self.tbl.c.next_retry_at == None)
+                    | (
+                        self.tbl.c.next_retry_at
+                        <= datetime.datetime.now(tz=datetime.timezone.utc)
+                    ),
                 )
                 .order_by(self.tbl.c.priority.desc(), self.tbl.c.created_at.asc())
                 .with_for_update(skip_locked=True)
@@ -57,7 +62,7 @@ class TaskDao(DBBase):
 
             result = db_session.execute(stm).first()
             return result
-    
+
         except OperationalError as e:
             print(f"OperationalError: {e}")
             # self.log.warning(f"Erro operacional ao buscar task (provavelmente bloqueio): {e}")
@@ -68,13 +73,16 @@ class TaskDao(DBBase):
             # self.log.error(f"Erro ao buscar a próxima task: {e}")
             db_session.rollback()
             return None
-        
-    def update_task_status(self, db_session, task_id:int, new_state:str):
+
+    def update_task_status(self, db_session, task_id: int, new_state: str):
         try:
             stmt = (
                 update(self.tbl)
                 .where(self.tbl.c.id == task_id)
-                .values(state=new_state, updated_at=datetime.datetime.now(tz=datetime.timezone.utc))
+                .values(
+                    state=new_state,
+                    updated_at=datetime.datetime.now(tz=datetime.timezone.utc),
+                )
             )
 
             db_session.execute(stmt)
@@ -85,8 +93,8 @@ class TaskDao(DBBase):
             msg = f"Erro ao atualizar o status da task {task_id}: {e}"
             db_session.rollback()
             raise Exception(msg)
-        
-    def get_task_by_id(self, db_session, task_id:int):
+
+    def get_task_by_id(self, db_session, task_id: int):
         try:
             stm = select(self.tbl.c).where(self.tbl.c.id == task_id)
             result = db_session.execute(stm).first()
@@ -95,7 +103,7 @@ class TaskDao(DBBase):
             msg = f"Erro ao buscar a task {task_id}: {e}"
             db_session.rollback()
             raise Exception(msg)
-        
+
     def mark_task_failed(self, db_session, task_id, error_message):
         try:
             task = self.get_task_by_id(db_session, task_id)
@@ -104,13 +112,19 @@ class TaskDao(DBBase):
             if attempt_count >= task.max_retries:
                 state = PredictionState.STALLED
                 next_retry_at = None
-                print(f"Task {task.id} marcada como STALLED após atingir o número máximo de retries.")
+                print(
+                    f"Task {task.id} marcada como STALLED após atingir o número máximo de retries."
+                )
             else:
                 # Exponential backoff
-                delay_seconds = self.base_delay * (2 ** (task.attempt_count - 1)) 
+                delay_seconds = self.base_delay * (2 ** (task.attempt_count - 1))
                 state = PredictionState.PENDING
-                next_retry_at = datetime.datetime.now(tz=datetime.timezone.utc) + datetime.timedelta(seconds=delay_seconds)
-                print(f"Task {task.id} marcada como FAILED. Próximo retry em {delay_seconds} segundos.")
+                next_retry_at = datetime.datetime.now(
+                    tz=datetime.timezone.utc
+                ) + datetime.timedelta(seconds=delay_seconds)
+                print(
+                    f"Task {task.id} marcada como FAILED. Próximo retry em {delay_seconds} segundos."
+                )
 
             updated_at = datetime.datetime.now(tz=datetime.timezone.utc)
             stmt = (
@@ -121,7 +135,7 @@ class TaskDao(DBBase):
                     last_error=error_message,
                     attempt_count=attempt_count,
                     next_retry_at=next_retry_at,
-                    updated_at=updated_at
+                    updated_at=updated_at,
                 )
             )
             db_session.execute(stmt)
@@ -130,4 +144,3 @@ class TaskDao(DBBase):
             db_session.rollback()
             msg = f"Erro ao marcar a task {task_id} como FAILED: {e}"
             raise Exception(msg)
-

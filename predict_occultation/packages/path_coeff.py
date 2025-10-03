@@ -4,8 +4,8 @@ import logging
 import pandas as pd
 from datetime import datetime, timezone
 from library import (
-    ra_hms_to_deg, 
-    dec_hms_to_deg, 
+    ra_hms_to_deg,
+    dec_hms_to_deg,
     get_mag_ra_dec_uncertainties_interpolator,
     asteroid_visual_magnitude,
     compute_magnitude_drop,
@@ -15,15 +15,16 @@ from library import (
     get_moon_illuminated_fraction,
     get_instant_uncertainty,
     get_closest_approach_uncertainty,
-    generate_hash
+    generate_hash,
 )
 from occviz import occultation_path_coeff
 import json
 import numpy as np
 from astropy.time import Time
 
+
 def prepare_occultation_table_dataframe(
-    occultation_table: pathlib.Path, 
+    occultation_table: pathlib.Path,
     object_data: Dict,
     predict_params: Dict,
     job_id: Optional[int] = None,
@@ -151,13 +152,15 @@ def prepare_occultation_table_dataframe(
     # Provenance Fields
     # Adiciona algumas informacoes de Proveniencia a cada evento de predicao
     # -------------------------------------------------
-    df["job_id"] = job_id # Opicional, obrigatório apenas para tasks submetidas pela interface de jobs.
+    df["job_id"] = (
+        job_id  # Opicional, obrigatório apenas para tasks submetidas pela interface de jobs.
+    )
     df["catalog"] = predict_params["star_catalog"]["display_name"]
     df["predict_step"] = predict_params.get("ephemeris_step", 60)
     df["bsp_source"] = predict_params["asteroid_ephemeris"]["source"]
     df["bsp_planetary"] = predict_params["planetary_ephemeris"]["display_name"]
-    df["leap_seconds"] = predict_params["leap_seconds"]["display_name"] 
-    df["nima"] = False # NIMA nao esta sendo utilizado
+    df["leap_seconds"] = predict_params["leap_seconds"]["display_name"]
+    df["nima"] = False  # NIMA nao esta sendo utilizado
     df["created_at"] = datetime.now(tz=timezone.utc)
 
     # -------------------------------------------------
@@ -166,7 +169,7 @@ def prepare_occultation_table_dataframe(
     df["have_path_coeff"] = False
     df["occ_path_coeff"] = {}
     columns = [
-        "gaia_source_id", 
+        "gaia_source_id",
         "g_star",
         "apparent_magnitude",
         "magnitude_drop",
@@ -320,7 +323,7 @@ def prepare_occultation_table_dataframe(
             "probability_of_centrality",
             "hash_id",
             "updated_at",
-            "closest_approach_uncertainty_km"
+            "closest_approach_uncertainty_km",
         ]
     )
     df.to_csv(occultation_table, index=False, sep=";")
@@ -333,14 +336,12 @@ def execute_path_coeff(
     object_ephemeris: pathlib.Path,
     mag_and_uncert: pathlib.Path,
     planetary_ephemeris: pathlib.Path,
-    leap_seconds: pathlib.Path,    
+    leap_seconds: pathlib.Path,
     logger: logging.Logger,
 ):
 
     # Le o arquivo de ocultações
-    df = pd.read_csv(
-        occultation_table,
-        delimiter=";")
+    df = pd.read_csv(occultation_table, delimiter=";")
 
     # Le o arquivo de incertezas
     logger.info("Reading the uncertainties file")
@@ -360,7 +361,7 @@ def execute_path_coeff(
         logger.debug(f"Has uncertainties: [{has_uncertainties}]")
     else:
         logger.warning(f"Uncertainties file does not exist. {str(mag_and_uncert)}")
-   
+
     logger.info("Reading the star catalog")
     # Le o source_id, ra, dec e g magnitude do catalogo gaia csv
     df_gaia_csv = pd.read_csv(
@@ -440,7 +441,7 @@ def execute_path_coeff(
                 object_data["h"] < 99
             ):  # some objects have h defined as 99.99 when unknown in the asteroid table inherited from MPC
                 ast_vis_mag = asteroid_visual_magnitude(
-                    asteroid_bsp = object_ephemeris,
+                    asteroid_bsp=object_ephemeris,
                     naif_tls=leap_seconds,
                     planetary_bsp=planetary_ephemeris,
                     instant=datetime.strptime(row["date_time"], "%Y-%m-%d %H:%M:%S"),
@@ -453,9 +454,7 @@ def execute_path_coeff(
         magnitude_drop = compute_magnitude_drop(ast_vis_mag, gaia_g_mag)
 
         # Calcula o diametro apararente o diametro em km existe
-        apparent_diameter = get_apparent_diameter(
-            object_data["diameter"], row["delta"]
-        )
+        apparent_diameter = get_apparent_diameter(object_data["diameter"], row["delta"])
 
         # Calcula a duração do evento se o diametro existir
         event_duration = get_event_duration(object_data["diameter"], row["velocity"])
@@ -590,9 +589,7 @@ def execute_path_coeff(
         df["apparent_diameter"] = df_coeff["apparent_diameter"]
         df["event_duration"] = df_coeff["event_duration"]
         df["instant_uncertainty"] = df_coeff["instant_uncertainty"]
-        df["closest_approach_uncertainty"] = df_coeff[
-            "closest_approach_uncertainty"
-        ]
+        df["closest_approach_uncertainty"] = df_coeff["closest_approach_uncertainty"]
         df["closest_approach_uncertainty_km"] = df_coeff[
             "closest_approach_uncertainty_km"
         ]
@@ -613,7 +610,6 @@ def execute_path_coeff(
         df["occ_path_min_latitude"] = df_coeff["occ_path_min_latitude"]
 
         del df_coeff
-
 
     # Converter as strings date_time do instante da ocultação em objetos datetime utc
     df["date_time"] = pd.to_datetime(df["date_time"], utc=True)

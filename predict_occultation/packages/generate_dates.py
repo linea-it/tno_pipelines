@@ -31,7 +31,7 @@
 
 #     filepath = Path(cwd, "dates.txt")
 
-#     # Diretório onde o script está sendo executado. 
+#     # Diretório onde o script está sendo executado.
 #     original_cwd = os.getcwd()
 #     logger.info(f"Original Execution CWD: [{original_cwd}]")
 

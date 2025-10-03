@@ -11,6 +11,7 @@ from astropy.coordinates import AltAz, EarthLocation, SkyCoord, get_body, get_su
 from astropy.time import Time
 from scipy.interpolate import interp1d
 
+
 def angle_subtended_by_a_sphere(
     geocentric_distance,
     object_diameter=None,
@@ -55,6 +56,7 @@ def angle_subtended_by_a_sphere(
 
     return 2 * np.degrees(np.arcsin(ratio)) + 2 * pmc
 
+
 def eph_hhmmss_to_deg(hour, minute, second):
     """Convert hour angle (hours, minutes, seconds) to degrees from eph file."""
     return (hour + minute / 60.0 + second / 3600.0) * 15
@@ -66,29 +68,32 @@ def eph_ddmmss_to_deg(degree, minute, second, sign):
         return degree - minute / 60.0 - second / 3600.0
     return degree + minute / 60.0 + second / 3600.0
 
+
 def asteroid_diameter(
     diameter: Optional[float],
     density_err_max: Optional[float],
 ):
-    # Obtem o diametro do objeto + erro maximo, 
+    # Obtem o diametro do objeto + erro maximo,
     # trata possivel ausencia de erro e diametro
-    object_diameter = (diameter or 0) + (
-        density_err_max or 0
-    )
+    object_diameter = (diameter or 0) + (density_err_max or 0)
     object_diameter = object_diameter if object_diameter > 0 else None
     return object_diameter
 
-def object_diameter_plus_error(diameter: Optional[float], diameter_err_max: Optional[float]):
+
+def object_diameter_plus_error(
+    diameter: Optional[float], diameter_err_max: Optional[float]
+):
     if diameter_err_max is None:
         if diameter is not None:
             diameter *= 1.2
     else:
-        diameter += diameter_err_max 
+        diameter += diameter_err_max
+
 
 def read_ra_dec_from_ephemerides(
     input, object_diameter=None, h=None, proper_motion_compensation=None
 ):
-    
+
     # Read the ephemerides and prepare the data
     ra, dec, geodist = [], [], []
     with open(input) as f:
@@ -119,6 +124,7 @@ def read_ra_dec_from_ephemerides(
     )
     return ra, dec, angular_diameter
 
+
 def ra_hms_to_deg(ra):
     rs = 1
 
@@ -130,6 +136,7 @@ def ra_hms_to_deg(ra):
 
     return ra_deg
 
+
 def dec_hms_to_deg(dec):
     ds = 1
 
@@ -140,6 +147,7 @@ def dec_hms_to_deg(dec):
     dec_deg = deg * ds
 
     return dec_deg
+
 
 def create_interpolator(jd, values):
     """
@@ -167,6 +175,7 @@ def create_interpolator(jd, values):
         fill_value="extrapolate",
     )
 
+
 def get_mag_ra_dec_uncertainties_interpolator(jd, apmag, ra_3sigma, dec_3sigma):
     """
     Returns interpolators for magnitudes, right ascension (RA), and declination (Dec) uncertainties.
@@ -192,6 +201,7 @@ def get_mag_ra_dec_uncertainties_interpolator(jd, apmag, ra_3sigma, dec_3sigma):
     dcs = create_interpolator(jd, dec_3sigma)
 
     return magcs, rcs, dcs
+
 
 def get_bsp_header_values(asteroid_bsp):
     """
@@ -283,6 +293,7 @@ def get_bsp_header_values(asteroid_bsp):
     except Exception as e:
         raise ValueError(f"Error parsing SPK file: {str(e)}")
 
+
 def get_position_vector(target, observer, et, spice_object):
     """
     Retrieve the position vector of a target relative to an observer at a given ephemeris time.
@@ -298,6 +309,7 @@ def get_position_vector(target, observer, et, spice_object):
     """
     state, ltime = spice_object.spkezr(target, et, "J2000", "NONE", observer)
     return state[:3]
+
 
 def asteroid_visual_magnitude(
     asteroid_bsp, naif_tls, planetary_bsp, instant, h=None, g=None, spice_global=False
@@ -380,7 +392,8 @@ def asteroid_visual_magnitude(
     except Exception as e:
         # print(f"Error: {e}")
         return None
-    
+
+
 def compute_magnitude_drop(asteroid_visual_magnitude, star_visual_magnitude):
     """
     Compute the magnitude drop of an asteroid relative to a star.
@@ -399,6 +412,7 @@ def compute_magnitude_drop(asteroid_visual_magnitude, star_visual_magnitude):
     drop_magnitude = 2.5 * np.log10(1 + 10 ** (delta_magnitude * 0.4))
     return drop_magnitude
 
+
 def get_apparent_diameter(diameter, distance):
     """computes the apparent diameter in mas with diameter given in km and distance in au"""
     if diameter is not None:
@@ -407,15 +421,17 @@ def get_apparent_diameter(diameter, distance):
         )
         return apparent_diameter
     else:
-        return None    
-    
+        return None
+
+
 def get_event_duration(diameter, velocity):
     """Computes the event duration in seconds with diameter given in km and velocity in km/s"""
     if diameter is not None:
         return diameter / abs(velocity)
     else:
         return None
-    
+
+
 def get_moon_and_sun_separation(ra, dec, instant):
     "Earth location is considered geocentric"
     instant = Time(instant, scale="utc")
@@ -438,7 +454,8 @@ def get_moon_and_sun_separation(ra, dec, instant):
     # Calculate the angular separation between the Moon and the object
     moon_angular_separation = object_altaz.separation(moon_altaz).degree
     sun_angular_separation = object_altaz.separation(sun_altaz).degree
-    return moon_angular_separation, sun_angular_separation    
+    return moon_angular_separation, sun_angular_separation
+
 
 def get_moon_illuminated_fraction(time, ephemeris=None):
     """
@@ -470,6 +487,7 @@ def get_moon_illuminated_fraction(time, ephemeris=None):
     illumination_fraction = (1 + np.cos(moon_phase_angle)) / 2.0
 
     return illumination_fraction
+
 
 def get_instant_uncertainty(
     position_angle,
@@ -563,6 +581,7 @@ def get_instant_uncertainty(
     time_uncertainty = total_error_km / abs(velocity)
     return time_uncertainty
 
+
 def get_closest_approach_uncertainty(
     position_angle, e_ra_target, e_dec_target, e_ra_star=0, e_dec_star=0
 ):
@@ -621,6 +640,7 @@ def get_closest_approach_uncertainty(
 
     return total_error_arcsec
 
+
 def normalize_to_nearest_hour(dt):
     # Ensure input is a datetime object
     if not isinstance(dt, datetime):
@@ -637,6 +657,7 @@ def normalize_to_nearest_hour(dt):
     normalized_dt = dt.replace(minute=0, second=0, microsecond=0)
 
     return normalized_dt
+
 
 def generate_hash(
     name: str,

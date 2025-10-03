@@ -9,6 +9,7 @@ from sqlalchemy.sql import text
 import logging
 import pathlib
 
+
 def compute_strip_boundaries(ra, dec, angdiam):
     """
     Compute the upper and lower boundaries of a strip centered on a given RA/Dec path.
@@ -183,11 +184,13 @@ def compute_polygons(ra, dec, angular_diameter):
 class MissingDBURIException(Exception):
     pass
 
+
 class TableNotFoundError(Exception):
     def __init__(self, tablename, schema):
         self.tablename = tablename
         self.schema = schema
         super().__init__(f"Table {tablename} not found in schema {schema}")
+
 
 class Dao:
     engine = None
@@ -210,7 +213,7 @@ class Dao:
             self.engine = create_engine(self.get_db_uri(), poolclass=NullPool)
 
         return self.engine
-    
+
     def get_table(self, tablename, schema=None):
         engine = self.get_db_engine()
         with engine.connect() as con:
@@ -394,7 +397,9 @@ class GaiaDao(Dao):
             #     # TODO marcar o status do Asteroid como warning.
             #     # TODO implementar funcao para dividir o resutado em lista menores e executar em loop.
 
-            self.logger.info(f"Query executed successfully returning {df_results.shape[0]} rows")
+            self.logger.info(
+                f"Query executed successfully returning {df_results.shape[0]} rows"
+            )
 
             return df_results
 
@@ -529,5 +534,3 @@ class GaiaDao(Dao):
             return filepath
         else:
             raise (Exception("Star Catalog .csv file not generated. [%s]" % filepath))
-
-

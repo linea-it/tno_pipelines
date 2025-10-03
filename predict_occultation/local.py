@@ -22,13 +22,13 @@ def run_command_and_stream_output(command):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,  # Decodes stdout/stderr as text
-            shell=True  # Executes the command through the shell
+            shell=True,  # Executes the command through the shell
         )
 
         # Stream stdout line by line
         for line in process.stdout:
             print(line.strip())
-            sys.stdout.flush() # Ensure immediate output
+            sys.stdout.flush()  # Ensure immediate output
 
         # After stdout is exhausted, check for any stderr output
         stderr_output = process.stderr.read()
@@ -47,53 +47,54 @@ def run_command_and_stream_output(command):
 
 
 def main():
-    print("="*60)
-    print("Local Runner")
-
     # Check for tasks with status QUEUED
-    print("Checking for QUEUED tasks...")
+    # print("Checking for QUEUED tasks...")
     task_dao = TaskDao()
     db_session = Session(task_dao.get_db_engine())
     command = None
     try:
         task = task_dao.get_next_task(db_session, PredictionState.QUEUED)
         if not task:
-            print("No QUEUED tasks found.")
+            # print("No QUEUED tasks found.")
             return
 
-        print(f"Found task id: [{task.id}]") # type: ignore
+        print(f"Found task id: [{task.id}]")  # type: ignore
 
         if not task.workdir:
             raise ValueError("Task workdir is not set.")
 
         cfg = Config()
         cfg.task_id = task.id  # type: ignore
-        cfg.asteroid_name = task.asteroid_id  # type: ignore 
+        cfg.asteroid_name = task.asteroid_id  # type: ignore
         cfg.asteroid_path = task.workdir  # type: ignore
 
         cfg_filepath = pathlib.Path(task.workdir).joinpath("config.yaml")  # type: ignore
 
-        with open(cfg_filepath, 'w') as outfile:
+        with open(cfg_filepath, "w") as outfile:
             data_json = cfg.model_dump()
             print(f"Writing config to {cfg_filepath}")
             print(data_json)
 
             yaml.dump(data_json, outfile)
 
-
-        # Execute the run.sh script 
+        # Execute the run.sh script
         print("Executing run.sh")
-        ret = pathlib.Path(os.getenv("PIPELINES_DIR")).joinpath("predict_occultation").joinpath("run.sh").resolve().as_posix()
+        ret = (
+            pathlib.Path(os.getenv("PIPELINES_DIR"))
+            .joinpath("predict_occultation")
+            .joinpath("run.sh")
+            .resolve()
+            .as_posix()
+        )
         command = f"{ret} {str(cfg_filepath)}"
         print(f"Running command: {command}")
-        print("-"*60)
+        print("-" * 60)
 
     except Exception as e:
         print(f"Error: {e}")
         db_session.rollback()
     finally:
         db_session.close()
-
 
     if command:
         run_command_and_stream_output(command)
@@ -105,9 +106,11 @@ if __name__ == "__main__":
 
     while True:
         try:
+            print("=" * 60)
+            print("Local Runner")
             main()
         except Exception as e:
             print(f"Unexpected error in main loop: {e}")
         finally:
-            print(f"Waiting for {interval} seconds")
+            # print(f"Waiting for {interval} seconds")
             time.sleep(interval)
